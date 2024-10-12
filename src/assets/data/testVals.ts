@@ -1,3 +1,4 @@
+// import { findIndex } from "@fluentui/react";
 import { PatientSummary } from "../../types/types";
 
 
@@ -5,6 +6,7 @@ export const patientList = [
   {
     personalData: {
       firstSession: "2024-08-12",
+      lastSession: "2024-09-10",
       name: "Juan Carlos Rivas",
       age: 45,
       dateOfBirth: "1979-05-12",
@@ -16,7 +18,7 @@ export const patientList = [
       mail: "juan.rivas@gmail.com",
       religiousBelief: "Católico",
     },
-    annotations: "Paciente con antecedentes de hipertensión",
+    finishLatter: false,
     motive: "Dolor abdominal",
     personalBackground: {
       pathological: "Hipertensión",
@@ -50,8 +52,8 @@ export const patientList = [
       heartRate: 72,
       respiratoryRate: 18,
       bloodPressure: "120/80",
-      saturation: "98%",
-      temperature: "37°C",
+      saturation: 98,
+      temperature: 37,
       weight: 80,
       size: 175,
       IMC: 20,
@@ -76,7 +78,7 @@ export const patientList = [
         physicalExam: "Normal",
         diagnosis: "Gastritis en resolución",
         plan: "Continuar tratamiento",
-        annotation: "Controlar dieta",
+        finishLater: false,
         alternative: {
           isAlternative: false,
           therapy: null,
@@ -89,6 +91,7 @@ export const patientList = [
         physicalExam: "todo positivo",
         diagnosis: "Colitis en resolucion",
         plan: "Continuar tratamiento",
+        finishLater: false,
         alternative: {
           isAlternative: false,
           therapy: null,
@@ -99,6 +102,7 @@ export const patientList = [
   {
     personalData: {
       firstSession: "2024-08-20",
+      lastSession: "2024-09-15",
       name: "José Pérez",
       age: 40,
       dateOfBirth: "1984-10-25",
@@ -110,7 +114,7 @@ export const patientList = [
       mail: "jose.perez@gmail.com",
       religiousBelief: "Católico",
     },
-    annotations: "Paciente con antecedentes de diabetes tipo 2",
+    finishLatter: true,
     motive: "Dolor torácico",
     personalBackground: {
       pathological: "Diabetes tipo 2",
@@ -157,8 +161,8 @@ export const patientList = [
       heartRate: 80,
       respiratoryRate: 20,
       bloodPressure: "140/90",
-      saturation: "96%",
-      temperature: "36.8°C",
+      saturation: 96,
+      temperature: 36.8,
       weight: 85,
       size: 175,
       IMC: 27,
@@ -183,7 +187,7 @@ export const patientList = [
         physicalExam: "Normal",
         diagnosis: "Angina en control",
         plan: "Continuar con nitroglicerina",
-        annotation: "Controlar presión arterial",
+        finishLater: true,
         alternative: {
           isAlternative: false,
           therapy: null,
@@ -194,6 +198,7 @@ export const patientList = [
   {
     personalData: {
       firstSession: "2024-08-30",
+      lastSession: "2024-09-25",
       name: "Luisa Gómez",
       age: 55,
       dateOfBirth: "1969-05-16",
@@ -205,7 +210,7 @@ export const patientList = [
       mail: "luisa.gomez@gmail.com",
       religiousBelief: "Cristiana",
     },
-    annotations: "Paciente con antecedentes de artritis",
+    finishLatter: true,
     motive: "Fatiga y dolor en articulaciones",
     personalBackground: {
       pathological: "Artritis",
@@ -253,8 +258,8 @@ export const patientList = [
       heartRate: 78,
       respiratoryRate: 18,
       bloodPressure: "130/85",
-      saturation: "97%",
-      temperature: "36.5°C",
+      saturation: 97,
+      temperature: 36.5,
       weight: 70,
       size: 160,
       IMC: 27,
@@ -286,7 +291,7 @@ export const patientList = [
         physicalExam: "Sin cambios",
         diagnosis: "Artritis en tratamiento",
         plan: "Continuar con metotrexato",
-        annotation: "Controlar dolor articular",
+        finishLater: true,
         alternative: {
           isAlternative: false,
           therapy: null,
@@ -294,6 +299,105 @@ export const patientList = [
       },
     ],
   },
+  {
+    personalData: {
+      firstSession: "2024-09-05",
+      lastSession: "2024-10-15",
+      name: "María Fernanda Torres",
+      age: 32,
+      dateOfBirth: "1992-03-18",
+      occupation: "Profesora",
+      maritalStatus: "Soltera",
+      identification: "1765432109",
+      address: "Calle Orellana, Guayaquil, Ecuador",
+      phone: "0987654321",
+      mail: "maria.torres@gmail.com",
+      religiousBelief: "Agnóstica",
+    },
+    finishLatter: true,
+    motive: "Dolor de cabeza frecuente",
+    personalBackground: {
+      pathological: "Migraña",
+      farmacological: "Sumatriptán",
+      quirurgical: "Ninguno",
+      trauma: "Ninguno",
+      alergic: "Polvo",
+      toxic: "No fumadora, consumo social de alcohol",
+      ginecoObstetric: {
+        OS: {
+          gestations: 1,
+          births: 0,
+          Caesarean: 1,
+          abortions: 0,
+        },
+        lastMenstruation: "2024-10-01",
+        planification: "Sí, anticonceptivos orales",
+        menarche: "13 años",
+        cycles: "Regulares",
+        papSmear: "2024-02",
+        observations: "Sin complicaciones en el embarazo previo",
+      },
+      hospitalary: "Cesárea en 2020",
+    },
+    familyBackground: "Madre con migraña, padre con hipertensión",
+    currentIllness: "Dolor de cabeza intenso y frecuente en los últimos 2 meses",
+    systemReview: {
+      skin: "Normal",
+      collagen: "Normal",
+      lymphatic: "Normal",
+      auditive: "Normal",
+      visual: "Fotofobia durante episodios de migraña",
+      respiratory: "Normal",
+      digestive: "Náuseas ocasionales",
+      genitourinary: "Normal",
+      musculoskeletal: "Tensión en cuello y hombros",
+      feeding: "Dieta variada, evita alimentos desencadenantes",
+      sleep: "Insomnio ocasional",
+      physicalActivity: "Yoga 3 veces por semana",
+      psychosocial: "Estrés laboral moderado",
+    },
+    familyogram: "No especificado",
+    physicalExam: {
+      heartRate: 68,
+      respiratoryRate: 16,
+      bloodPressure: "110/70",
+      saturation: 99,
+      temperature: 36.7,
+      weight: 60,
+      size: 165,
+      IMC: 22,
+      physicalExam: "Sin hallazgos significativos, leve tensión muscular en cuello",
+    },
+    diagnostic: [
+      {
+        description: "Migraña crónica",
+      },
+    ],
+    treatment: [
+      {
+        description: "Topiramato 50mg diarios",
+      },
+      {
+        description: "Sumatriptán 50mg en caso de crisis",
+      },
+    ],
+    doctor: "Dra. Carla Mendoza",
+    evolution: [
+      {
+        attendedDate: "2024-10-15",
+        motive: "Seguimiento de migraña",
+        currentIllness: "Disminución en frecuencia de episodios",
+        physicalExam: "Sin cambios significativos",
+        diagnosis: "Migraña en tratamiento, mejoría parcial",
+        plan: "Continuar con medicación actual, considerar terapia de relajación",
+        finishLater: true,
+        alternative: {
+          isAlternative: true,
+          therapy: "Acupuntura",
+        },
+      },
+    ],
+  }
 ];
 
 const listHistoriesWithEmptyComponents = (patientList: PatientSummary[]) => {
@@ -315,7 +419,6 @@ const getHistoriesWithEmptyComponents = (patientList: PatientSummary[]) => {
 
     return (
       isPersonalDataEmpty ||
-      patient.annotations === "" ||
       patient.motive === "" ||
       isPersonalBackgroundEmpty ||
       patient.familyBackground === "" ||

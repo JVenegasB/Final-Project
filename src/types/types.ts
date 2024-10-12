@@ -1,6 +1,7 @@
 export interface PatientSummary {
     personalData: {
       firstSession: string;
+      lastSession: string;
       name: string;
       age: number;
       dateOfBirth: string;
@@ -12,8 +13,8 @@ export interface PatientSummary {
       mail: string;
       religiousBelief: string;
     };
+    finishLatter: boolean;
     motive: string;
-    annotations: string;
     personalBackground: {
       pathological: string;
       farmacological: string;
@@ -59,8 +60,8 @@ export interface PatientSummary {
       heartRate: number;
       respiratoryRate: number;
       bloodPressure: string;
-      saturation: string;
-      temperature: string;
+      saturation: number;
+      temperature: number;
       weight: number;
       size: number;
       IMC: number;
@@ -80,7 +81,7 @@ export interface PatientSummary {
       physicalExam: string;
       diagnosis: string;
       plan: string;
-      annotation?: string;
+      finishLater: boolean;
       alternative: {
         isAlternative: boolean;
         therapy: string | null;
@@ -93,5 +94,7 @@ export interface user {
     id: number,
     name: string,
     email: string,
-    role: string
+    role: string,
+    nickName: string,
+    code: string,
 }

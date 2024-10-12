@@ -1,7 +1,15 @@
-import { Divider } from "@fluentui/react-components";
+import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, DialogTrigger, Input, Label, Textarea } from "@fluentui/react-components";
 import { useEffect, useState } from "react";
+import { ArrowLeft24Regular } from '@fluentui/react-icons';
+import { PatientSummary } from "../types/types";
+import PatientHistory from "./PatientHistory";
 
-export default function AddEvolution() {
+interface Props {
+    patientData: PatientSummary | null;
+    setAddEvolutionComponent: (value: string) => void;
+}
+
+export default function AddEvolution({ patientData, setAddEvolutionComponent }: Props) {
     const [formData, setFormData] = useState({
         date: "",
         motive: "",
@@ -12,6 +20,7 @@ export default function AddEvolution() {
         isAlternative: false,
         alternative: "",
         annotation: "",
+        finishLater: false
     });
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -41,8 +50,7 @@ export default function AddEvolution() {
         const minutes = String(currentDate.getMinutes()).padStart(2, '0');
         const seconds = String(currentDate.getSeconds()).padStart(2, '0');
         const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-    
-        console.log(formattedDateTime);
+
         setFormData((prevData) => ({
             ...prevData,
             date: formattedDateTime
@@ -50,159 +58,238 @@ export default function AddEvolution() {
     }, []);
 
     const handleSubmit = () => {
-        const emptyFields = Object.entries(formData).filter(([key, value]) => {
-            if (key === 'isAlternative') return false;
-            return value === "";
-        });
-
-        if (emptyFields.length > 0) {
-            console.log("Campos vacíos: ",emptyFields);
-        } else {
-            console.log("Enviando datos", formData);
-        }
+        console.log("Enviando datos", formData);
+    }
+    const handleSubmitLater = () => {
+        setFormData({
+            ...formData,
+            finishLater: true
+        })
+        console.log("Enviando datos para continuar mas tarde", formData);
     }
     const [isFormValid, setIsFormValid] = useState(false);
     useEffect(() => {
-        console.log('A')
-        const isValid = Object.values(formData).every(value => {
-            if (formData.isAlternative === false && value === formData.alternative) {
-              return true;
-            }
+        const isValid = Object.entries(formData).every(([key, value]) => {
+            if (key === 'annotation') return true;
+            if (formData.isAlternative === false && key === 'alternative') return true;
             return value !== "";
-          });
-      
-          setIsFormValid(isValid);
-    },[formData])
-    
+        })
+        setIsFormValid(isValid);
+    }, [formData]);
+
+    const [openDialog, setOpenDialog] = useState<boolean>(false);
+    const handlePatientDetails = () => {
+        setOpenDialog(true);
+    }
+    const [openReturnDialog, setOpenReturnDialog] = useState<boolean>(false);
+    const returnPage = () => {
+        const isValid = Object.entries(formData).some(([key, value]) => {
+            if (key === 'date' || key === 'isAlternative') return false;
+            return value !== "";
+        })
+        if (!isValid) {
+            setAddEvolutionComponent("list");
+        }
+        else {
+            setOpenReturnDialog(true);
+        }
+    }
+    const returnToMainPage = () => {
+        setOpenReturnDialog(false)
+        setAddEvolutionComponent("list");
+    }
     return (
-        <div className="border-black border-2 rounded-xl h-full mt-10">
-            <div className="flex flex-row items-center w-full border-b-2 border-black h-12">
-                <div className={`w-2/12 flex justify-center px-2 py-3 border-r-2 border-black hover:bg-customHover rounded-tl-xl font-roboto ${formData.isAlternative && 'bg-blue-600 text-white'}`} onClick={() => showAlternative()}>
-                    <button >Proceso alternativo</button>
-                </div>
-                <div className="w-8/12 flex justify-center font-roboto font-bold text-xl">
-                    Evolución
-                </div>
-                <div className="w-2/12 flex justify-center px-2 py-3 border-l-2 border-black hover:bg-customHover rounded-tr-xl" onClick={() => handleSubmit()}>
-                    <button >{isFormValid ? ("Guardar"):("Terminar mas tarde")}</button>
-                </div>
+        <div className="flex flex-col flex-grow h-full w-full">
+            
+            <div className="flex ">
+                <Button
+                    icon={<ArrowLeft24Regular />}
+                    onClick={returnPage}
+                >
+                    Volver
+                </Button>
+
+                <Dialog open={openReturnDialog}>
+                    <DialogSurface>
+                        <DialogBody>
+                            <DialogTitle>Confirmacion de retorno</DialogTitle>
+                            <DialogContent>
+                                Esta seguro que desea volver? los cambios no se guardaran a menos que los envie
+                            </DialogContent>
+                            <DialogActions>
+
+                                    <Button appearance="secondary" onClick={() => setOpenReturnDialog(false)}>cerrar</Button>
+                                    <Button appearance="primary" onClick={returnToMainPage}>Volver</Button>
+                            </DialogActions>
+                        </DialogBody>
+                    </DialogSurface>
+                </Dialog>
+                
+                <Dialog>
+                    <DialogTrigger disableButtonEnhancement>
+                        <Button disabled={!isFormValid}>Guardar</Button>
+                    </DialogTrigger>
+                    <DialogSurface>
+                        <DialogBody>
+                            <DialogTitle>Confirmacion de envio de Evolucion</DialogTitle>
+                            <DialogContent>
+                                Esta seguro que desea enviar la evolucion medica? Una vez enviada no podra ser modificada
+                            </DialogContent>
+                            <DialogActions>
+                                <DialogTrigger disableButtonEnhancement>
+                                    <Button appearance="secondary">Volver</Button>
+                                </DialogTrigger>
+                                <DialogTrigger disableButtonEnhancement>
+                                    <Button appearance="primary" onClick={handleSubmit}>Enviar</Button>
+                                </DialogTrigger>
+                            </DialogActions>
+                        </DialogBody>
+                    </DialogSurface>
+                </Dialog>
+
+
+                <Dialog>
+                    <DialogTrigger disableButtonEnhancement>
+                        <Button>Continuar mas tarde</Button>
+                    </DialogTrigger>
+                    <DialogSurface>
+                        <DialogBody>
+                            <DialogTitle>Confirmacion para continuar mas tarde </DialogTitle>
+                            <DialogContent>
+                                ¿Estás seguro de que deseas guardar la evolución y continuar más tarde? Esto solo se puede hacer una vez
+                            </DialogContent>
+                            <DialogActions>
+                                <DialogTrigger disableButtonEnhancement>
+                                    <Button appearance="secondary">Volver</Button>
+                                </DialogTrigger>
+                                <DialogTrigger disableButtonEnhancement>
+                                    <Button appearance="primary" onClick={handleSubmitLater}>Enviar para continuar mas tarde</Button>
+                                </DialogTrigger>
+                            </DialogActions>
+                        </DialogBody>
+                    </DialogSurface>
+                </Dialog>
+                <Button
+                    onClick={handlePatientDetails}
+                >
+                    Ver detalles de historia clinica
+                </Button>
+                <Button
+                    onClick={showAlternative}
+                    appearance={`${formData.isAlternative ? "primary" : "secondary"}`}
+                >
+                    Agregar terapia alternativa
+                </Button>
             </div>
+            <div className="w-full">
+                <h1 className="font-roboto text-2xl mt-5">Crear historia para <span className="font-bold">{patientData?.personalData.name} - {patientData?.personalData.identification}</span></h1>
+            </div>
+            <PatientHistory open={openDialog} setOpen={setOpenDialog} selectedPatient={patientData} />
 
-            <div className="max-h-[80vh] overflow-y-auto px-10">
-
-
+            <div className="overflow-y-auto flex flex-col">
                 <div className="flex flex-col mt-5">
-                    <label htmlFor="date">Fecha:</label>
-                    <input
+                    <Label htmlFor="date">Fecha:</Label>
+                    <Input
                         type="datetime-local"
                         name="date"
                         id="date"
                         value={formData.date}
-                        className="w-1/4 bg-customButton rounded-md"
                         onChange={handleInputChange}
                     />
                 </div>
 
                 <div className="flex flex-col mt-5">
-                    <label htmlFor="motive">Motivo de consulta:</label>
-                    <textarea
+                    <Label htmlFor="motive">Motivo de consulta:</Label>
+                    <Textarea
                         id="motive"
                         name="motive"
                         value={formData.motive}
                         onChange={handleInputChange}
-                        className="w-full bg-customButton rounded-md p-2 resize-none"
                         rows={3}
                         style={{ overflow: "hidden" }}
                         placeholder="Escribe el motivo de la consulta..."
+                        resize="both"
                     />
                 </div>
 
                 <div className="flex flex-col mt-5">
-                    <label htmlFor="illness">Enfermedad actual:</label>
-                    <textarea
+                    <Label htmlFor="illness">Enfermedad actual:</Label>
+                    <Textarea
                         id="illness"
                         name="currentIllness"
                         value={formData.currentIllness}
                         onChange={handleInputChange}
-                        className="w-full bg-customButton rounded-md p-2 resize-none"
                         rows={3}
                         style={{ overflow: "hidden" }}
                         placeholder="Describe la enfermedad actual..."
+                        resize="both"
                     />
                 </div>
 
                 <div className="flex flex-col mt-5">
-                    <label htmlFor="physicalExam">Examen fisico</label>
-                    <textarea
+                    <Label htmlFor="physicalExam">Examen fisico</Label>
+                    <Textarea
                         id="physicalExam"
                         name="physicalExam"
                         value={formData.physicalExam}
                         onChange={handleInputChange}
-                        className="w-full bg-customButton rounded-md p-2 resize-none"
                         rows={3}
                         style={{ overflow: "hidden" }}
                         placeholder="Describe el resultado del examen fisico..."
+                        resize="both"
                     />
                 </div>
                 <div className="flex flex-col mt-5">
-                    <label htmlFor="diagnosis">Diagnostico:</label>
-                    <textarea
+                    <Label htmlFor="diagnosis">Diagnostico:</Label>
+                    <Textarea
                         id="diagnosis"
                         name="diagnosis"
                         value={formData.diagnosis}
                         onChange={handleInputChange}
-                        className="w-full bg-customButton rounded-md p-2 resize-none"
                         rows={3}
                         style={{ overflow: "hidden" }}
                         placeholder="Describe el diagnostico..."
+                        resize="both"
                     />
                 </div>
-                <div className="flex flex-col mt-5">
-                    <label htmlFor="plan">Plan:</label>
-                    <textarea
+                <div className="flex flex-col my-5">
+                    <Label htmlFor="plan">Plan:</Label>
+                    <Textarea
                         id="plan"
                         name="plan"
                         value={formData.plan}
                         onChange={handleInputChange}
-                        className="w-full bg-customButton rounded-md p-2 resize-none"
                         rows={3}
                         style={{ overflow: "hidden" }}
                         placeholder="Describe el plan..."
+                        resize="both"
                     />
                 </div>
-                <div className="flex flex-col my-5">
-                    <label htmlFor="annotation">Anotaciones:</label>
-                    <textarea
-                        id="annotation"
-                        name="annotation"
-                        value={formData.annotation}
-                        onChange={handleInputChange}
-                        className="w-full bg-customButton rounded-md p-2 resize-none"
-                        rows={3}
-                        style={{ overflow: "hidden" }}
-                        placeholder="Escribir anotaciones..."
-                    />
-                </div>
-                
                 {formData.isAlternative && (
-                    <div className="mt-3">
-                        <Divider/>
+                    <div className="">
                         <div className="flex flex-col mb-10 mt-5">
-                        <label htmlFor="alternative">Ingrese terapia alternativa</label>
-                        <textarea
-                            name="alternative"
-                            id="alternative"
-                            value={formData.alternative}
-                            onChange={handleInputChange}
-                            className="w-full bg-customButton rounded-md p-2 resize-none"
-                            rows={3}
-                            style={{ overflow: "hidden" }}
-                            placeholder="Ingrese terapia alternativa..."
-                        />
-                    </div>
+                            <Label htmlFor="alternative">Ingrese terapia alternativa</Label>
+                            <Textarea
+                                name="alternative"
+                                id="alternative"
+                                value={formData.alternative}
+                                onChange={handleInputChange}
+                                rows={3}
+                                style={{ overflow: "hidden" }}
+                                placeholder="Ingrese terapia alternativa..."
+                                resize="both"
+                            />
+                        </div>
                     </div>
                 )}
             </div>
+            {/* 
+            <div className="max-h-[80vh] overflow-y-auto px-10">
+
+                
+                
+                
+            </div> */}
         </div>
     );
 }

@@ -12,8 +12,13 @@ export default {
         'lato': ['Lato', 'sans-serif'],
       },
       colors: {
+        mainBgDark: '#242424',
+        mainBgLight: '#ffffff',
+        secondaryBgDark: '#707070',
+        secondaryBgLight: '#DDDDDD',
+        thirdBgDark: '#424242',
         customBlue: '#0077BB',
-        customBg:'#CFCFCF',
+        customBg:'#DDDDDD',
         customHover: '#B0B0B0',
         customButton: '#E4E4E4',
       }

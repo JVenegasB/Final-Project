@@ -1,162 +1,230 @@
-import { useMemo, useState } from "react";
-import { DataFunnelRegular } from '@fluentui/react-icons';
-import { Avatar, Menu, MenuTrigger, Button, MenuPopover, MenuList, MenuItem, Divider } from "@fluentui/react-components";
+import { useEffect, useMemo, useState } from "react";
+import { TableColumnDefinition,Menu, createTableColumn, useTableFeatures, useTableSort, TableColumnId, Table, TableHeader, TableHeaderCell, TableRow, TableBody, TableCell, TableCellLayout, Button, Avatar, Label, Select, Input, MenuButton, MenuItem, MenuList, MenuPopover, MenuTrigger } from "@fluentui/react-components";
 import { PatientSummary } from '../types/types.ts';
+import PatientHistory from "./PatientHistory.tsx";
+import { ArrowDownload28Regular, DocumentAdd28Regular, Eye28Regular } from '@fluentui/react-icons';
+// import { useThemeContext } from "../context/themeContext.ts";
 
 interface Props {
-    setSelectedPatient: (patient: PatientSummary | null) => void;
-    patientData: PatientSummary[] | undefined;
+    patientData: PatientSummary[];
+    setAddEvolutionComponent: (value: string) => void;
+    fatherSetSelectedPatient: (value: PatientSummary | null) => void;
+    setExportType: (value: string) => void;
 }
 
-type Evolution = {
-    attendedDate: string,
-    motive: string,
-    currentIllness: string,
-    physicalExam: string,
-    diagnosis: string,
-    plan: string,
-    alternative: {
-        isAlternative: boolean,
-        therapy: string | null,
-    },
-}
+const columns: TableColumnDefinition<PatientSummary>[] = [
+    createTableColumn<PatientSummary>({
+        columnId: 'name',
+        compare: (a, b) => a.personalData.name.localeCompare(b.personalData.name),
+    }),
+    createTableColumn<PatientSummary>({
+        columnId: 'identification',
+        compare: (a, b) => a.personalData.identification.localeCompare(b.personalData.identification),
+    }),
+    createTableColumn<PatientSummary>({
+        columnId: 'lastSession',
+        compare: (a, b) => a.personalData.lastSession.localeCompare(b.personalData.lastSession),
+    }),
+    createTableColumn<PatientSummary>({
+        columnId: 'firstSession',
+        compare: (a, b) => a.personalData.firstSession.localeCompare(b.personalData.firstSession),
+    }),
+];
 
-export default function PatientList({ setSelectedPatient, patientData }: Props) {
-
-    const [handleFilter, setHandleFilter] = useState<string>('Nombre');
-    const [handleSelectedFilder, setHandleSelectedFilter] = useState(false);
+export default function PatientList({ patientData,setAddEvolutionComponent,fatherSetSelectedPatient,setExportType }: Props) {
+    // const { isDarkMode } = useThemeContext();
+    const [handleFilter, setHandleFilter] = useState<string>('name');
 
     const handleFilterButton = (input: string) => {
         setHandleFilter(input);
     }
-
-    const handleOpenChange = (isOpen: boolean) => {
-        setHandleSelectedFilter(isOpen);
-    };
-
-    const getLastSession = (patient: Evolution[]) => {
-        if (patient.length === 0) {
-            return 'N/A';
-        }
-
-        const latestDate = new Date(
-            Math.max(...patient.map(e => new Date(e.attendedDate).getTime()))
-        );
-        return latestDate.toISOString().split('T')[0];
-    };
-
     const [searchElement, setSearchElement] = useState<string>('');
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchElement(e.target.value);
     }
     const filterPatients = useMemo(() => {
-        console.log(searchElement);
         if (searchElement === '') {
-            console.log('No search element');
             return patientData;
         }
         return patientData?.filter((patient) => {
-            if (handleFilter === 'Nombre') {
+            if (handleFilter === 'name') {
                 return patient.personalData.name.toLowerCase().includes(searchElement.toLowerCase());
-            } else if (handleFilter === 'Cedula') {
+            } else if (handleFilter === 'personalId') {
                 return patient.personalData.identification.toLowerCase().includes(searchElement.toLowerCase());
-            } else if (handleFilter === 'fecha') {
-                const [year, month] = searchElement.split('-');
-
-                const lastSession = getLastSession(patient.evolution);
-                const [lastYear, lastMonth] = lastSession.split('-'); 
-                return year === lastYear && month === lastMonth;
+            } else if (handleFilter === 'firstSession') {
+                return patient.personalData.firstSession.split("-")[1].includes(searchElement.split("-")[1]);
+            } else if (handleFilter === 'lastSession') {
+                return patient.personalData.lastSession.split("-")[1].includes(searchElement.split("-")[1]);
             }
         });
     }, [searchElement, handleFilter, patientData]);
+    useEffect(() => {
+        setSearchElement('');
+    }, [handleFilter])
+    const {
+        getRows,
+        sort: { getSortDirection, toggleColumnSort, sort },
+    } = useTableFeatures(
+        {
+            columns,
+            items: filterPatients,
+        },
+        [
+            useTableSort({
+                defaultSortState: { sortColumn: "name", sortDirection: "ascending" },
+            }),
+        ]
+    );
 
+    const headerSortProps = (columnId: TableColumnId) => ({
+        onClick: (e: React.MouseEvent) => {
+            toggleColumnSort(e, columnId);
+        },
+        sortDirection: getSortDirection(columnId),
+    });
+
+    const rows = sort(getRows());
+
+    const [selectedPatient, setSelectedPatient] = useState<PatientSummary | null>(null);
+    const [openDialog, setOpenDialog] = useState<boolean>(false);
+    const handlePatientSelection = (patient: PatientSummary) => {
+        setSelectedPatient(patient);
+        setOpenDialog(true);
+    }
+    const handleAddEvolution = (patient: PatientSummary) => {
+        setAddEvolutionComponent("evolution");
+        fatherSetSelectedPatient(patient);
+    }
+    const handleExportPdfSummary = (patient: PatientSummary) => {
+        setAddEvolutionComponent("export");
+        fatherSetSelectedPatient(patient);
+        setExportType("resumen");
+    }
+    const handleExportPdfComplete = (patient: PatientSummary) => {
+        setAddEvolutionComponent("export");
+        fatherSetSelectedPatient(patient);
+        setExportType("completo");
+    }
     return (
-        <div className="border-black border-2 rounded-xl">
-            <div className="flex flex-row items-center w-full  border-b-2 border-black h-12">
-                <div className="w-2/12 flex justify-center">
-                    {handleFilter}
+        <div className="flex flex-col h-full">
+            <div className="flex lg:flex-row flex-col w-full">
+                <div className="flex flex-row items-center my-3">
+                    <Label htmlFor="searchBy" className="mr-2 font-roboto">Buscar por: </Label>
+                    <Select
+                        id="searchBy"
+                        onChange={(e) => handleFilterButton(e.target.value)}
+                        value={handleFilter}
+                        className="font-lato"
+                    >
+                        <option value="name">Nombre</option>
+                        <option value="personalId">Cedula</option>
+                        <option value="firstSession">Fecha de primera consulta</option>
+                        <option value="lastSession">Fecha de ultima consulta</option>
+                    </Select>
                 </div>
-                <div className="w-8/12 px-2 py-1 border-x-2 border-black">
-                    {handleFilter === 'fecha' ? (
+                <div className="flex items-center lg:ml-5 font-lato">
+                    {(handleFilter === 'firstSession' || handleFilter === 'lastSession') ? (
                         <div className="flex flex-row w-full">
-                            <input
-                                className="w-full bg-customButton rounded-md p-2"
-                                type='Date'
+                            <Input
+                                className="rounded-md p-2 w-60"
+                                type='date'
                                 placeholder="Buscar paciente..."
                                 onChange={handleSearch}
+                                value={searchElement}
                             />
                         </div>
                     ) : (
-                        <input
-                            className="w-full bg-customButton rounded-md p-2"
+                        <Input
+                            className="rounded-md p-2 w-72"
                             type='text'
-                            placeholder={`Buscar paciente por ${handleFilter} ...`}
+                            placeholder={`Buscar paciente ...`}
                             value={searchElement}
                             onChange={handleSearch}
                         />
                     )}
                 </div>
-                <div className={`w-2/12 px-2 py-1 rounded-tr-xl border-black flex justify-center items-center h-full font-roboto font-bold text-xl ${handleSelectedFilder ? "bg-blue-600 text-white" : "hover:bg-customHover"}`}>
-                    <Menu onOpenChange={(_e, data) => handleOpenChange(data.open)}>
-                        <MenuTrigger>
-                            <Button className="w-2/12 flex justify-center">
-                                <DataFunnelRegular />
-                            </Button>
-                        </MenuTrigger>
-                        <MenuPopover>
-                            <MenuList className="bg-customBg border-2 border-black p-2 font-openSans font-semibold">
-                                <MenuItem >
-                                    <div className="hover:bg-blue-600 hover:text-white" onClick={() => handleFilterButton('Nombre')}>
-                                        Nombre
+            </div>
+            <div className="flex-grow">
+                <PatientHistory open={openDialog} setOpen={setOpenDialog} selectedPatient={selectedPatient} />
+                <Table sortable className="mt-5 min-w-full overflow-x-auto">
+                    <TableHeader className="font-roboto font-semibold">
+                        <TableRow appearance="neutral">
+                            <TableHeaderCell className="w-16"></TableHeaderCell>
+                            <TableHeaderCell className="w-44" {...headerSortProps("name")}>
+                                Nombre
+                            </TableHeaderCell>
+                            <TableHeaderCell className="w-36" {...headerSortProps("identification")}>
+                                Cedula
+                            </TableHeaderCell>
+                            <TableHeaderCell className="w-48" {...headerSortProps("firstSession")}>
+                                Fecha de primera consulta
+                            </TableHeaderCell>
+                            <TableHeaderCell className="w-48" {...headerSortProps("lastSession")}>
+                                Fecha de ultima consulta
+                            </TableHeaderCell>
+                            <TableHeaderCell className="w-60">
+
+                            </TableHeaderCell>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody className="font-openSans">
+                        {rows.map(({ item }, index) => (
+                            <TableRow key={index}>
+                                <TableCell>
+                                    <div className="flex items-center justify-center">
+                                        <Avatar name={item.personalData.name} />
                                     </div>
-                                </MenuItem>
-                                <Divider className="h-0" />
-                                <MenuItem>
-                                    <div className="hover:bg-blue-600 hover:text-white" onClick={() => handleFilterButton('Cedula')}>
-                                        Cedula
+                                </TableCell>
+                                <TableCell>
+                                    <TableCellLayout>
+                                        {item.personalData.name}
+                                    </TableCellLayout>
+                                </TableCell>
+                                <TableCell>
+                                    {item.personalData.identification}
+                                </TableCell>
+                                <TableCell>
+                                    {item.personalData.firstSession}
+                                </TableCell>
+                                <TableCell>
+                                    {item.personalData.lastSession}
+                                </TableCell>
+                                <TableCell>
+                                    <div>
+                                        <Button
+                                            onClick={() => handlePatientSelection(item)}
+                                            icon={<Eye28Regular />}
+                                        >
+                                            Ver mas
+                                        </Button>
+                                        <Button
+                                            icon={<DocumentAdd28Regular />}
+                                            onClick={() => handleAddEvolution(item)}
+                                        >
+                                            Agregar
+                                        </Button>
+                                        <Menu>
+                                            <MenuTrigger disableButtonEnhancement>
+                                                <MenuButton icon={<ArrowDownload28Regular />}>Exportar</MenuButton>
+                                            </MenuTrigger>
+
+                                            <MenuPopover>
+                                                <MenuList>
+                                                    <MenuItem onClick={() => handleExportPdfSummary(item)}>Resumen</MenuItem>
+                                                    <MenuItem onClick={() => handleExportPdfComplete(item)}>Completo</MenuItem>
+                                                </MenuList>
+                                            </MenuPopover>
+                                        </Menu>
                                     </div>
-                                </MenuItem>
-                                <Divider style={{ borderWidth: '1px', fontWeight: 'bold' }} />
-                                <MenuItem>
-                                    <div className="hover:bg-blue-600 hover:text-white" onClick={() => handleFilterButton('fecha')}>
-                                        <button>Fecha de ultima consulta</button>
-                                    </div>
-                                </MenuItem>
-                            </MenuList>
-                        </MenuPopover>
-                    </Menu>
-                </div>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
             </div>
 
-            <div className="max-h-[79vh] overflow-y-auto">
-                {filterPatients !== undefined && filterPatients.map((patient, index) => (
-                    <div
-                        key={index}
-                        className="flex flex-row items-center border-black border-t-2 py-4 justify-around cursor-pointer hover:bg-customHover"
-                        onClick={() => setSelectedPatient(patient)}
-                    >
-                        <div className="w-1/6 flex justify-center items-center">
-                            <Avatar className="w-12 h-12" />
-                        </div>
-                        <div className="flex flex-col justify-start w-3/6 px-4">
-                            <div className="text-xl font-semibold">
-                                {patient.personalData.name}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                                CI: {patient.personalData.identification}
-                            </div>
-                        </div>
-                        <div className="flex flex-col w-2/6 px-4">
-                            <div>
-                                Primera consulta: {patient.personalData.firstSession}
-                            </div>
-                            <div>
-                                Última consulta: {getLastSession(patient?.evolution)}
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
         </div>
+
+
     );
 }

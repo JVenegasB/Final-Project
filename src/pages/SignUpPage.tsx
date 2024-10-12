@@ -6,7 +6,7 @@ export default function SignUpPage() {
     const [password, setPassword] = useState('')
     const [repeatPassWord, setRepeatPassword] = useState('')
 
-    
+
     const [errors, setErrors] = useState({
         email: '',
         password: '',
@@ -15,8 +15,8 @@ export default function SignUpPage() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        
-        console.log('Signup attempted with:', { email,repeatPassWord, password })
+
+        console.log('Signup attempted with:', { email, repeatPassWord, password })
 
     }
     const handleInvalidValue = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,43 +36,21 @@ export default function SignUpPage() {
     }
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target
-    
+
         setErrors(prevErrors => ({
             ...prevErrors,
-            [name]: '' 
+            [name]: ''
         }))
         if (name === 'email') setEmail(value)
         if (name === 'password') setPassword(value)
         if (name === 'password-repeat') setRepeatPassword(value)
     }
     return (
-        <div className="flex min-h-screen">
-            <div className="hidden lg:flex lg:w-1/2 bg-blue-600 justify-center items-center">
-                <div className="text-white">
-                    <svg
-                        className="h-20 w-20 mb-4 mx-auto"
-                        fill="none"
-                        height="24"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                        width="24"
-                        xmlns="http://www.w3.org/2000/svg"
-                    >
-                        <path d="M12 5.74C16.4 2.3 22.72 3.88 22.72 9.22C22.72 14.56 14.77 19.24 12 21C9.23 19.24 1.28 14.56 1.28 9.22C1.28 3.88 7.6 2.3 12 5.74Z" />
-                    </svg>
-                    <h1 className="text-4xl font-bold">CompanyName</h1>
-                </div>
-            </div>
-
-
-
-            <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12 lg:px-8">
-                <div className="w-full max-w-md space-y-8">
+        <div className="flex h-screen">
+            <div className="w-full flex items-center justify-center">
+                <div className="w-full max-w-xl space-y-8 p-10 bg-blue-900">
                     <div>
-                        <h2 className="mt-6 text-center font-roboto text-3xl font-extrabold text-gray-900">
+                        <h2 className="mt-6 text-center font-roboto text-3xl font-extrabold text-white">
                             Create una cuenta
                         </h2>
                     </div>
@@ -140,7 +118,7 @@ export default function SignUpPage() {
                             >
                                 Ingresar
                             </button>
-                            <p className='mt-3'>Ya tienes cuenta? <Link to="/login" className='font-medium text-blue-600 hover:text-blue-500'>Inicia sesion</Link></p>
+                            <p className='mt-3'>Ya tienes cuenta? <Link to="/login" className='font-medium text-blue-200 hover:text-blue-500 ml-1'>Inicia sesion</Link></p>
                         </div>
                     </form>
                 </div>

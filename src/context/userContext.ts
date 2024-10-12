@@ -1,4 +1,3 @@
-// userContext.ts
 import { createContext, useContext } from "react";
 import { user } from "../types/types";
 

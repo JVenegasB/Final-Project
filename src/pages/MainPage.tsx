@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { Divider } from "@fluentui/react-components";
-import { Link } from 'react-router-dom';
-import { AiOutlineHome, AiOutlineUser, AiOutlineSetting, AiOutlineMenu } from 'react-icons/ai';
 import PatientsPage from './PatientsPage.tsx'
 import { useUserContext } from '../context/userContext';
-
+import { useThemeContext } from '../context/themeContext.ts';
+import { PersonCircle28Regular, Home28Filled, Person28Filled, Settings28Filled, Navigation20Filled } from '@fluentui/react-icons';
+import { Button } from '@fluentui/react-components';
 
 export default function Header() {
     const [loggedUser,] = useUserContext();
+    const { isDarkMode, setIsDarkMode } = useThemeContext();
 
     const [activeTab, setActiveTab] = useState('mainButton');
 
@@ -16,12 +16,11 @@ export default function Header() {
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
     };
-    console.log(loggedUser);
     const renderTabContent = () => {
         switch (activeTab) {
             case 'default':
                 return (
-                    <div>
+                    <div className='w-full p-5'>
                         <p>Bienvenido {loggedUser?.name}</p>
                         <p>Correo: {loggedUser?.email}</p>
                         <h1>Coo</h1>
@@ -29,22 +28,20 @@ export default function Header() {
                 );
             case 'pacientesElement':
                 return (
-                    <div>
-                        <PatientsPage></PatientsPage>
-                    </div>
+                    <PatientsPage></PatientsPage>
                 );
             case 'settingsElement':
                 return (
-                    <div>
-                        <p>C</p>
-                        <h1>Coo</h1>
+                    <div className='w-full p-5'>
+                        <p>Configuraciones</p>
+                        <h2 className='my-3 font-roboto text-2xl'>Tema</h2>
+                        <Button onClick={() => setIsDarkMode(!isDarkMode)}>Cambiar a {isDarkMode ? " claro" : "oscuro"}</Button>
                     </div>
                 );
             case 'mainElement':
-            // No return here, fall through to default case
             default:
                 return (
-                    <div>
+                    <div className='p-5'>
                         <p>Bienvenido {loggedUser?.name}</p>
                         <p>Correo: {loggedUser?.email}</p>
                         <h1>Coo</h1>
@@ -52,63 +49,47 @@ export default function Header() {
                 );
         }
     };
-    if (!loggedUser) {
-        return (
-            <div>
-                <p>Usuario no logeado</p>
-                <Link to="/login">Iniciar sesion</Link>
-            </div>
-        );
-    }
     return (
-        <div className="flex flex-col min-h-screen lg:flex-row bg-customBg">
-            <div className='flex flex-col justify-between items-center px-3 bg-blue-600'>
-                <div className='flex flex-col justify-between items-center px-3 bg-blue-600 w-full lg:w-auto'>
-                    <div className="bg-red-100 p-10 my-3">
-                        <p>Logo</p>
-                    </div>
-                    <button onClick={toggleMenu} className="lg:hidden">
-                        <AiOutlineMenu className="text-white" size={30} />
-                    </button>
-                </div>
-
-                <div className={`flex flex-col font-openSans mb-auto w-full ${isMenuOpen ? 'block' : 'hidden lg:block'}`}>
-                    <div className='my-2'>
-                        <Divider />
-                    </div>
-                    <div className='mx-5 mt-2 mb-1'>
-                        <button onClick={() => setActiveTab('mainElement')} className="flex items-center">
-                            <AiOutlineHome className="mr-2 " size={20} />
-                            <p className=' text-white text-lg'>Inicio</p>
-                        </button>
-                    </div>
-                    <div className="mx-5 my-1">
-                        <button onClick={() => setActiveTab('pacientesElement')} className="flex items-center">
-                            <AiOutlineUser className="mr-2" size={20} />
-                            <p className=' text-white text-lg'>Pacientes</p>
-                        </button>
-                    </div>
-                    {isMenuOpen && (
-                        <div className="mx-5 mb-3 lg:hidden">
-                            <button onClick={() => setActiveTab('settingsElement')} className="flex items-center">
-                                <AiOutlineSetting className="mr-2" size={20} />
-                                <p className=' text-white text-lg'>Configuraciones</p>
-                            </button>
-                        </div>
-                    )}
-                </div>
-
-                <div className={`mx-5 mb-3 hidden lg:block`}>
-                    <button onClick={() => setActiveTab('settingsElement')} className="flex items-center ">
-                        <AiOutlineSetting className="mr-2" size={20} />
-                        <p className='text-lg text-white'>Configuraciones</p>
-                    </button>
-                </div>
-            </div>
-            <div className='w-full pt-5 max-h-screen overflow-y-auto'>
-                {renderTabContent()}
-            </div>
-
+        <div className="flex flex-col max-h-screen ">
+    <div className={`${isDarkMode ? "bg-mainBgDark" : "bg-white"} lg:flex flex-row justify-between px-5 hidden`}>
+        <div className='flex flex-row justify-center items-center w-44 h-20 m-2 bg-red-400'>
+            Company Name
         </div>
+        <div className='flex flex-row items-center m-2'>
+            <div className='font-roboto italic text-gray-400'>Codigo: {loggedUser?.code}</div>
+            <div className='border-2 mx-2 p-2 font-roboto'>
+                <PersonCircle28Regular className='mr-2' />
+                {loggedUser?.nickName}
+            </div>
+        </div>
+    </div>
+    <div className="flex lg:flex-row flex-grow flex-col">
+        <div className={`flex flex-col items-center px-3 ${isDarkMode ? "bg-mainBgDark" : "bg-blue-900"}`}>
+            <div className='flex flex-col justify-between items-center px-3 w-full lg:w-auto lg:hidden my-2'>
+                <button onClick={toggleMenu}>
+                    <Navigation20Filled className='text-white' />
+                </button>
+            </div>
+            <div className={`flex flex-col font-lato mb-auto w-full ${isMenuOpen ? 'block' : 'hidden lg:block'} lg:mt-5 py-3`}>
+                <button onClick={() => setActiveTab('mainElement')} className="flex flex-grow items-center px-3 py-5 hover:bg-blue-600 w-full border-b-2 border-white/50">
+                    <Home28Filled className="mr-2 text-white" />
+                    <p className=' text-white text-lg'>Inicio</p>
+                </button>
+                <button onClick={() => setActiveTab('pacientesElement')} className="flex flex-grow items-center px-3 py-5 hover:bg-blue-600 w-full border-b-2 border-white/50">
+                    <Person28Filled className="mr-2 text-white" />
+                    <p className=' text-white text-lg'>Pacientes</p>
+                </button>
+                <button onClick={() => setActiveTab('settingsElement')} className="flex flex-grow items-center px-3 py-5 hover:bg-blue-600 w-full ">
+                    <Settings28Filled className="mr-2 text-white" />
+                    <p className=' text-white text-lg'>Configuraciones</p>
+                </button>
+            </div>
+        </div>
+        <div className={`flex flex-grow flex-col w-full ${isDarkMode ? "bg-secondaryBgDark" : "bg-secondaryBgLight"} lg:h-[calc(100vh-95px)] h-full overflow-y-auto`}>
+            {renderTabContent()}
+        </div>
+    </div>
+</div>
+
     );
 }
