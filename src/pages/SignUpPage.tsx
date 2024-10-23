@@ -1,105 +1,185 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Button, Input, Label } from '@fluentui/react-components';
+import {EyeRegular,EyeOffRegular} from '@fluentui/react-icons';
+import { client } from '../supabase/client';
 
 export default function SignUpPage() {
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [repeatPassWord, setRepeatPassword] = useState('')
-
-
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [repeatPassWord, setRepeatPassword] = useState('');
+    
+    const [touched, setTouched] = useState({
+        email: false,
+        password: false,
+        repeatPassword: false
+    });
+    const [showPassword, setShowPassword] = useState(false);
+    const MicButton: React.FC = () => {
+        return (
+            <Button
+                onClick={() => setShowPassword(!showPassword)}
+                icon={showPassword ? <EyeOffRegular /> : <EyeRegular />}
+                appearance='transparent'
+                size='small'
+            />
+        )
+    }
+    const [showRepeatPassword, setShowRepeatPassword] = useState(false);
+    const RepeatMicButton: React.FC = () => {
+        return (
+            <Button
+                onClick={() => setShowRepeatPassword(!showRepeatPassword)}
+                icon={showRepeatPassword ? <EyeOffRegular /> : <EyeRegular />}
+                appearance='transparent'
+                size='small'
+            />
+        )
+    }
+    
     const [errors, setErrors] = useState({
         email: '',
         password: '',
         repeatPassword: ''
-    })
+    });
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
+    const isFormValid = !errors.email && !errors.password && !errors.repeatPassword && email && password && repeatPassWord;
 
-        console.log('Signup attempted with:', { email, repeatPassWord, password })
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        console.log('Signup attempted with:', { email, password });
+        try {
+            const { error } = await client.auth.signUp({
+                email,
+                password,
+            });
+    
+            if (error) {
+                console.error('Error during sign-up:', error.message);
+                return;
+            }
+    
+            console.log('Sign up successful');
+        } catch (error) {
+            console.error('Unexpected error:', error);
+        }
+    };
+    
 
-    }
     const handleInvalidValue = (e: React.ChangeEvent<HTMLInputElement>) => {
-        e.preventDefault()
-        let errorMessage = ''
+        e.preventDefault();
+        let errorMessage = '';
         if (e.target.name === 'email') {
-            errorMessage = 'El correo electronico es invalido'
+            errorMessage = 'El correo electrónico es inválido';
         } else if (e.target.name === 'password') {
-            errorMessage = 'La contraseña es invalida'
+            errorMessage = 'La contraseña debe tener al menos 8 caracteres';
         } else if (e.target.name === 'repeatPassword') {
-            errorMessage = 'Las contraseñas no coinciden'
+            errorMessage = 'Las contraseñas no coinciden';
         }
         setErrors(prevErrors => ({
             ...prevErrors,
             [e.target.name]: errorMessage
-        }))
-    }
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target
+        }));
+    };
 
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setTouched(prevTouched => ({ ...prevTouched, [name]: true }));
         setErrors(prevErrors => ({
             ...prevErrors,
             [name]: ''
-        }))
-        if (name === 'email') setEmail(value)
-        if (name === 'password') setPassword(value)
-        if (name === 'password-repeat') setRepeatPassword(value)
-    }
+        }));
+
+        if (name === 'email') setEmail(value);
+        if (name === 'password') setPassword(value);
+        if (name === 'repeatPassword') setRepeatPassword(value);
+    };
+
+    useEffect(() => {
+        if (touched.password && touched.repeatPassword) {
+            if (password !== repeatPassWord) {
+                setErrors(prevErrors => ({
+                    ...prevErrors,
+                    repeatPassword: 'Las contraseñas no coinciden'
+                }));
+            } else {
+                setErrors(prevErrors => ({
+                    ...prevErrors,
+                    repeatPassword: ''
+                }));
+            }
+        }
+
+        if (touched.password && password.length < 8) {
+            setErrors(prevErrors => ({
+                ...prevErrors,
+                password: 'La contraseña debe tener al menos 8 caracteres'
+            }));
+        } else {
+            setErrors(prevErrors => ({
+                ...prevErrors,
+                password: ''
+            }));
+        }
+
+    }, [password, repeatPassWord, touched]);
+
     return (
         <div className="flex h-screen">
             <div className="w-full flex items-center justify-center">
-                <div className="w-full max-w-xl space-y-8 p-10 bg-blue-900">
+                <div className="w-full max-w-xl space-y-8 p-10 bg-blue-900/50">
                     <div>
                         <h2 className="mt-6 text-center font-roboto text-3xl font-extrabold text-white">
-                            Create una cuenta
+                            Crea una cuenta
                         </h2>
                     </div>
                     <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                         <div className="space-y-4 rounded-md shadow-sm">
                             <div>
-                                <label htmlFor="email-address" className="sr-only">
-                                    Correo electronico
-                                </label>
-                                <input
+                                <Label htmlFor="email-address" className="sr-only">
+                                    Correo electrónico
+                                </Label>
+                                <Input
                                     id="email-address"
                                     name="email"
                                     type="email"
                                     autoComplete="email"
                                     required
                                     className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                    placeholder="Correo electronico"
+                                    placeholder="Correo electrónico"
                                     value={email}
                                     onChange={handleChange}
                                     onInvalid={handleInvalidValue}
                                 />
-                                {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+                                {touched.email && errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
                             </div>
                             <div>
                                 <label htmlFor="password" className="sr-only">
                                     Contraseña
                                 </label>
-                                <input
+                                <Input
                                     id="password"
                                     name="password"
-                                    type="password"
+                                    type={showPassword ? 'text' : 'password'}
                                     required
-                                    minLength={8}
+                                    contentAfter={<MicButton />}
                                     className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                                     placeholder="Ingrese la contraseña"
                                     value={password}
                                     onChange={handleChange}
                                     onInvalid={handleInvalidValue}
                                 />
-                                {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+                                {touched.password && errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
                             </div>
                             <div>
-                                <label htmlFor="password-repeat" className="sr-only">
+                                <label htmlFor="repeatPassword" className="sr-only">
                                     Repetir contraseña
                                 </label>
-                                <input
-                                    id="passwor-repeatd"
-                                    name="password-repeat"
-                                    type="password"
+                                <Input
+                                    id="repeatPassword"
+                                    name="repeatPassword"
+                                    type={showRepeatPassword ? 'text' : 'password'}
+                                    contentAfter={<RepeatMicButton />}
                                     required
                                     className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                                     placeholder="Repetir la contraseña"
@@ -107,22 +187,22 @@ export default function SignUpPage() {
                                     onChange={handleChange}
                                     onInvalid={handleInvalidValue}
                                 />
-                                {errors.repeatPassword && <p className="text-red-500 text-sm">{errors.repeatPassword}</p>}
-
+                                {touched.repeatPassword && errors.repeatPassword && <p className="text-red-500 text-sm">{errors.repeatPassword}</p>}
                             </div>
                         </div>
                         <div className='flex flex-col justify-center items-end font-lato '>
-                            <button
+                            <Button
                                 type="submit"
                                 className="group relative font-openSans w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                disabled={!isFormValid} 
                             >
                                 Ingresar
-                            </button>
-                            <p className='mt-3'>Ya tienes cuenta? <Link to="/login" className='font-medium text-blue-200 hover:text-blue-500 ml-1'>Inicia sesion</Link></p>
+                            </Button>
+                            <p className='mt-3'>¿Ya tienes cuenta? <Link to="/login" className='font-medium text-blue-200 hover:text-blue-500 ml-1'>Inicia sesión</Link></p>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
-    )
+    );
 }
