@@ -44,7 +44,7 @@ export default function PatientsPage() {
             <div>
                 <TabList selectedValue={tabSelected} onTabSelect={onTabSelect} className="flex flex-col m-3 gap-3 font-lato">
                     <Tab value="viewPatients">Ver pacientes</Tab>
-                    <Tab value="createPatients">Crear pacientes</Tab>
+                    <Tab value="createPatients">Crear paciente</Tab>
                     <Tab value="uncompletedHistory">Terminar más tarde</Tab>
                 </TabList>
             </div>
