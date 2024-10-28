@@ -1,8 +1,9 @@
-import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, DialogTrigger, Input, Label, Textarea } from "@fluentui/react-components";
+import { Button, Input, Label, Textarea } from "@fluentui/react-components";
 import { useEffect, useState } from "react";
-import { ArrowLeft24Regular } from '@fluentui/react-icons';
+import { ArrowLeft20Regular,Save20Regular,SaveArrowRight20Regular,ContentView20Regular,AddCircle20Regular } from '@fluentui/react-icons';
 import { PatientSummary } from "../types/types";
 import PatientHistory from "./PatientHistory";
+import ConfirmationDialogs from "./ConfirmationDialogs";
 
 interface Props {
     patientData: PatientSummary | null;
@@ -81,102 +82,30 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent }: 
     const handlePatientDetails = () => {
         setOpenDialog(true);
     }
-    const [openReturnDialog, setOpenReturnDialog] = useState<boolean>(false);
-    const returnPage = () => {
-        const isValid = Object.entries(formData).some(([key, value]) => {
-            if (key === 'date' || key === 'isAlternative') return false;
-            return value !== "";
-        })
-        if (!isValid) {
-            setAddEvolutionComponent("list");
-        }
-        else {
-            setOpenReturnDialog(true);
-        }
-    }
+    
     const returnToMainPage = () => {
-        setOpenReturnDialog(false)
         setAddEvolutionComponent("list");
     }
     return (
         <div className="flex flex-col flex-grow h-full w-full px-5">
-            
+
             <div className="flex ">
-                <Button
-                    icon={<ArrowLeft24Regular />}
-                    onClick={returnPage}
-                >
-                    Volver
-                </Button>
-
-                <Dialog open={openReturnDialog}>
-                    <DialogSurface>
-                        <DialogBody>
-                            <DialogTitle>Confirmacion de retorno</DialogTitle>
-                            <DialogContent>
-                                Esta seguro que desea volver? los cambios no se guardaran a menos que los envie
-                            </DialogContent>
-                            <DialogActions>
-
-                                    <Button appearance="secondary" onClick={() => setOpenReturnDialog(false)}>cerrar</Button>
-                                    <Button appearance="primary" onClick={returnToMainPage}>Volver</Button>
-                            </DialogActions>
-                        </DialogBody>
-                    </DialogSurface>
-                </Dialog>
                 
-                <Dialog>
-                    <DialogTrigger disableButtonEnhancement>
-                        <Button disabled={!isFormValid}>Guardar</Button>
-                    </DialogTrigger>
-                    <DialogSurface>
-                        <DialogBody>
-                            <DialogTitle>Confirmacion de envio de Evolucion</DialogTitle>
-                            <DialogContent>
-                                Esta seguro que desea enviar la evolucion medica? Una vez enviada no podra ser modificada
-                            </DialogContent>
-                            <DialogActions>
-                                <DialogTrigger disableButtonEnhancement>
-                                    <Button appearance="secondary">Volver</Button>
-                                </DialogTrigger>
-                                <DialogTrigger disableButtonEnhancement>
-                                    <Button appearance="primary" onClick={handleSubmit}>Enviar</Button>
-                                </DialogTrigger>
-                            </DialogActions>
-                        </DialogBody>
-                    </DialogSurface>
-                </Dialog>
 
+                <ConfirmationDialogs props={{valid:true,buttonDescription:'Volver',description:'Esta seguro que desea volver? los cambios no se guardaran a menos que los envie',mainButtonText:'Volver a la lista de pacientes',secondaryButtonText:"Seguir con la evolucion",title:'Confirmacion de retorno',mainFunction:returnToMainPage, icon:(<ArrowLeft20Regular/>)}} />
+                <ConfirmationDialogs props={{valid: isFormValid, mainFunction: handleSubmit, buttonDescription: 'Guardar', description: 'Esta seguro que desea enviar la evolucion medica? Una vez enviada no podra ser modificada', mainButtonText: 'Enviar', title: 'Confirmacion de envio de Evolucion', secondaryButtonText: 'Volver',icon:(<Save20Regular/>) }} />
+                <ConfirmationDialogs props={{valid: true, buttonDescription: 'Continuar mas tarde', description: '¿Estás seguro de que deseas guardar la evolución y continuar más tarde? Esto solo se puede hacer una vez', mainButtonText: 'Enviar para continuar mas tarde', mainFunction: handleSubmitLater, secondaryButtonText: 'Volver', title: 'Confirmacion para continuar mas tarde',icon:(<SaveArrowRight20Regular/>) }} />
 
-                <Dialog>
-                    <DialogTrigger disableButtonEnhancement>
-                        <Button>Continuar mas tarde</Button>
-                    </DialogTrigger>
-                    <DialogSurface>
-                        <DialogBody>
-                            <DialogTitle>Confirmacion para continuar mas tarde </DialogTitle>
-                            <DialogContent>
-                                ¿Estás seguro de que deseas guardar la evolución y continuar más tarde? Esto solo se puede hacer una vez
-                            </DialogContent>
-                            <DialogActions>
-                                <DialogTrigger disableButtonEnhancement>
-                                    <Button appearance="secondary">Volver</Button>
-                                </DialogTrigger>
-                                <DialogTrigger disableButtonEnhancement>
-                                    <Button appearance="primary" onClick={handleSubmitLater}>Enviar para continuar mas tarde</Button>
-                                </DialogTrigger>
-                            </DialogActions>
-                        </DialogBody>
-                    </DialogSurface>
-                </Dialog>
                 <Button
                     onClick={handlePatientDetails}
+                    icon={<ContentView20Regular/>}
                 >
                     Ver detalles de historia clinica
                 </Button>
                 <Button
                     onClick={showAlternative}
                     appearance={`${formData.isAlternative ? "primary" : "secondary"}`}
+                    icon={<AddCircle20Regular/>}
                 >
                     Agregar terapia alternativa
                 </Button>

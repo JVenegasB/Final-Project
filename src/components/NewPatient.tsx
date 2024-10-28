@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Checkbox, Label, Divider, Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, DialogTrigger, InfoLabel } from "@fluentui/react-components";
-import { PersonRegular, BriefcaseRegular, PersonChatRegular, SlideRecordRegular, ClockRegular, ClipboardCheckmarkRegular } from '@fluentui/react-icons';
+import { Checkbox, Label, Divider, Button, InfoLabel } from "@fluentui/react-components";
+import { PersonRegular, BriefcaseRegular, PersonChatRegular, SlideRecordRegular, ClockRegular, ClipboardCheckmarkRegular,SaveArrowRight20Regular,Save20Regular } from '@fluentui/react-icons';
 import { useUserContext } from '../context/userContext';
 import InputFieldWithIcon from './InputFieldWithIcon'
 import TextFieldWithIcon from './TextFieldWithIcon'
+import ConfirmationDialogs from './ConfirmationDialogs'
 
 export default function NewPatient() {
     const [loggedUser,] = useUserContext();
@@ -164,7 +165,6 @@ export default function NewPatient() {
                     return allFilled;
                 }
 
-                // Valida otros tipos de datos
                 if (typeof value === 'string') {
                     if (value === '') {
                         updatedMissingFields.push(key);
@@ -182,7 +182,6 @@ export default function NewPatient() {
                 return true;
             });
 
-            // Actualiza el estado de missingFields solo una vez al final
             setMissingFields(updatedMissingFields);
 
             return personalDataComplete && otherComplete;
@@ -309,52 +308,19 @@ export default function NewPatient() {
             treatment: prevData.treatment.slice(0, -1)
         }));
     }
+
+    const sendLater = () => {
+        console.log('sendingData')
+    }
+    const sendData = () => {
+        console.log('sending complete Data')
+    }
     return (
         <div className='flex flex-col h-full w-full overflow-y-auto'>
             <div className='flex md:flex-row flex-col justify-between md:mx-5 mx-2'>
                 <div>
-                    <Dialog>
-                        <DialogTrigger disableButtonEnhancement>
-                            <Button disabled={!isChanged}  >Terminar mas tarde</Button>
-                        </DialogTrigger>
-                        <DialogSurface>
-                            <DialogBody>
-                                <DialogTitle>Confirmacion para continuar mas tarde </DialogTitle>
-                                <DialogContent>
-                                    ¿Estás seguro de que deseas guardar la historia y continuar más tarde? Esto solo se puede hacer una vez
-                                </DialogContent>
-                                <DialogActions>
-                                    <DialogTrigger disableButtonEnhancement>
-                                        <Button appearance="secondary">Volver</Button>
-                                    </DialogTrigger>
-                                    <DialogTrigger disableButtonEnhancement>
-                                        <Button appearance="primary">Enviar para continuar mas tarde</Button>
-                                    </DialogTrigger>
-                                </DialogActions>
-                            </DialogBody>
-                        </DialogSurface>
-                    </Dialog>
-                    <Dialog>
-                        <DialogTrigger disableButtonEnhancement>
-                            <Button disabled={!isComplete}>Guardar</Button>
-                        </DialogTrigger>
-                        <DialogSurface>
-                            <DialogBody>
-                                <DialogTitle>Confirmacion de envio de Evolucion</DialogTitle>
-                                <DialogContent>
-                                    Esta seguro que desea enviar la historia? Esto no se puede deshacer ni editar
-                                </DialogContent>
-                                <DialogActions>
-                                    <DialogTrigger disableButtonEnhancement>
-                                        <Button appearance="secondary">Volver</Button>
-                                    </DialogTrigger>
-                                    <DialogTrigger disableButtonEnhancement>
-                                        <Button appearance="primary">Enviar</Button>
-                                    </DialogTrigger>
-                                </DialogActions>
-                            </DialogBody>
-                        </DialogSurface>
-                    </Dialog>
+                    <ConfirmationDialogs props={{buttonDescription:'Terminar mas tarde',description:'¿Estás seguro de que deseas guardar la historia y continuar más tarde? Esto solo se puede hacer una vez',mainButtonText:'Enviar para continuar mas tarde',mainFunction:sendLater,secondaryButtonText:'Cancelar',title:'Confirmacion para continuar mas tarde',valid:isChanged,icon:(<SaveArrowRight20Regular/>)}} />
+                    <ConfirmationDialogs props={{buttonDescription:'Guardar',description:'Esta seguro que desea enviar la historia? Una vez enviada no se puede deshacer ni editar',mainButtonText:'Enviar',mainFunction:sendData,secondaryButtonText:'Cancelar',title:'Confirmacion de envio de Evolucion',valid:isComplete,icon:(<Save20Regular/>)}} />
                     <InfoLabel info=
                         {
                             <>
