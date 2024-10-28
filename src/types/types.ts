@@ -87,6 +87,9 @@ export interface PatientSummary {
         therapy: string | null;
       };
     }[];
+    // annotations: {
+    //   description: string
+    // }[];
   }
   
 

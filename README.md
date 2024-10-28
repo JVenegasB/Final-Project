@@ -81,3 +81,10 @@ El proyecto está implementado utilizando **React**, **TypeScript**, **Tailwind 
 
 - Para cerrar sesión, haz clic en tu perfil (ubicado en la esquina superior derecha del dashboard) y selecciona "Cerrar Sesión".
 - Esto te desconectará de la aplicación y tendrás que iniciar sesión nuevamente para acceder a tu cuenta.
+
+### 7. Configuraciones
+
+- En la seccion de configuracciones, accesible mediante el menu lateral, se puede:
+ 1. Cambiar el tema
+ 2. Cambiar la contrasenia
+ 3. Autorizar o rechazar usuarios a la empresa

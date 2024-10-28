@@ -3,7 +3,6 @@ import { TableColumnDefinition,Menu, createTableColumn, useTableFeatures, useTab
 import { PatientSummary } from '../types/types.ts';
 import PatientHistory from "./PatientHistory.tsx";
 import { ArrowDownload28Regular, DocumentAdd28Regular, Eye28Regular } from '@fluentui/react-icons';
-// import { useThemeContext } from "../context/themeContext.ts";
 
 interface Props {
     patientData: PatientSummary[];
@@ -32,7 +31,6 @@ const columns: TableColumnDefinition<PatientSummary>[] = [
 ];
 
 export default function PatientList({ patientData,setAddEvolutionComponent,fatherSetSelectedPatient,setExportType }: Props) {
-    // const { isDarkMode } = useThemeContext();
     const [handleFilter, setHandleFilter] = useState<string>('name');
 
     const handleFilterButton = (input: string) => {
@@ -106,7 +104,7 @@ export default function PatientList({ patientData,setAddEvolutionComponent,fathe
         setExportType("completo");
     }
     return (
-        <div className="flex flex-col h-full">
+        <div className='flex flex-col h-full w-full px-5'>
             <div className="flex lg:flex-row flex-col w-full">
                 <div className="flex flex-row items-center my-3">
                     <Label htmlFor="searchBy" className="mr-2 font-roboto">Buscar por: </Label>
@@ -144,9 +142,9 @@ export default function PatientList({ patientData,setAddEvolutionComponent,fathe
                     )}
                 </div>
             </div>
-            <div className="flex-grow">
-                <PatientHistory open={openDialog} setOpen={setOpenDialog} selectedPatient={selectedPatient} />
-                <Table sortable className="mt-5 min-w-full overflow-x-auto">
+            <PatientHistory open={openDialog} setOpen={setOpenDialog} selectedPatient={selectedPatient} />
+            <div className="flex-grow overflow-x-auto">
+                <Table sortable className="mt-5 min-w-full">
                     <TableHeader className="font-roboto font-semibold">
                         <TableRow appearance="neutral">
                             <TableHeaderCell className="w-16"></TableHeaderCell>
@@ -222,9 +220,6 @@ export default function PatientList({ patientData,setAddEvolutionComponent,fathe
                     </TableBody>
                 </Table>
             </div>
-
         </div>
-
-
     );
 }

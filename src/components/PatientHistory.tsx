@@ -126,90 +126,102 @@ export default function PatientHistory({ selectedPatient, open, setOpen }: Props
                                     <AccordionPanel className='px-10  font-openSans'>
                                         <div className='flex flex-col'>
                                             <div className='flex flex-row py-2 items-center border-b-2'>
-                                                <div className='font-semibold font-roboto'>Patologicos:</div>
+                                                <div className='font-semibold font-roboto'>Patologicos: </div>
                                                 <div className='ml-2'> {selectedPatient?.personalBackground.pathological}</div>
                                             </div>
                                             <div className='flex flex-row py-2 items-center border-b-2'>
-                                                <div className='font-semibold font-roboto'>Farmacologicos:</div>
-                                                <div className=''> {selectedPatient?.personalBackground.farmacological}</div>
+                                                <div className='font-semibold font-roboto'>Farmacologicos: </div>
+                                                <div className='ml-2'> {selectedPatient?.personalBackground.farmacological}</div>
                                             </div>
 
                                             <div className='flex flex-row py-2 items-center border-b-2'>
-                                                <div className='font-semibold font-roboto'>Hospitalarios:</div>
-                                                <div className=''> {selectedPatient?.personalBackground.hospitalary}</div>
+                                                <div className='font-semibold font-roboto'>Hospitalarios: </div>
+                                                <div className='ml-2'> {selectedPatient?.personalBackground.hospitalary}</div>
                                             </div>
 
                                             <div className='flex flex-row py-2 items-center border-b-2'>
-                                                <div className='font-semibold font-roboto'>Quirurgico:</div>
-                                                <div className=''> {selectedPatient?.personalBackground.quirurgical}</div>
+                                                <div className='font-semibold font-roboto'>Quirurgico: </div>
+                                                <div className='ml-2'> {selectedPatient?.personalBackground.quirurgical}</div>
                                             </div>
 
                                             <div className='flex flex-row py-2 items-center border-b-2'>
                                                 <div className='font-semibold font-roboto'>Traumatico:</div>
-                                                <div className=''> {selectedPatient?.personalBackground.trauma}</div>
+                                                <div className='ml-2'> {selectedPatient?.personalBackground.trauma}</div>
                                             </div>
 
                                             <div className='flex flex-row py-2 items-center border-b-2'>
                                                 <div className='font-semibold font-roboto'>Alergico:</div>
-                                                <div className=''> {selectedPatient?.personalBackground.alergic}</div>
+                                                <div className='ml-2'> {selectedPatient?.personalBackground.alergic}</div>
                                             </div>
 
                                             <div className='flex flex-row my-2 py-2 items-center border-b-2'>
                                                 <div className='font-semibold font-roboto'>Toxico:</div>
-                                                <div className=''> {selectedPatient?.personalBackground.toxic}</div>
+                                                <div className='ml-2'> {selectedPatient?.personalBackground.toxic}</div>
                                             </div>
 
                                         </div>
-                                        <div className='font-semibold font-roboto my-2 flex justify-center'>
-                                            Gineco-obstetrico:
-                                        </div>
+                                        {selectedPatient?.personalBackground.ginecoObstetric ? (
+                                            <div>
+
+                                                <div className='font-semibold font-roboto my-2 flex justify-center'>
+                                                    Gineco-obstetrico:
+                                                </div>
 
 
-                                        <div className='grid lg:grid-cols-5 grid-cols-1 gap-2 mb-5'>
-                                            <div className='font-semibold font-roboto'>
-                                                FO:
+                                                <div className='grid lg:grid-cols-5 grid-cols-1 gap-2 mb-5'>
+                                                    <div className='font-semibold font-roboto'>
+                                                        FO:
+                                                    </div>
+                                                    <div className='grid grid-cols-2 lg:border-l-2 border-b-2 lg:border-b-0'>
+                                                        <div className='font-semibold font-roboto pl-2'>G:</div>
+                                                        <div >{selectedPatient?.personalBackground.ginecoObstetric?.OS.gestations}</div>
+                                                    </div>
+                                                    <div className='grid grid-cols-2 lg:border-l-2 border-b-2 lg:border-b-0'>
+                                                        <div className='font-semibold font-roboto pl-2'>P:</div>
+                                                        <div>{selectedPatient?.personalBackground.ginecoObstetric?.OS.births}</div>
+                                                    </div>
+                                                    <div className='grid grid-cols-2 lg:border-l-2 border-b-2 lg:border-b-0'>
+                                                        <div className='font-semibold font-roboto pl-2'>C:</div>
+                                                        <div>{selectedPatient?.personalBackground.ginecoObstetric?.OS.Caesarean}</div>
+                                                    </div>
+                                                    <div className='grid grid-cols-2 lg:border-l-2 border-b-2 lg:border-b-0'>
+                                                        <div className='font-semibold font-roboto pl-2'>A:</div>
+                                                        <div>{selectedPatient?.personalBackground.ginecoObstetric?.OS.abortions}</div>
+                                                    </div>
+                                                </div>
+                                                <div className='grid grid-cols-2 border-b-2 py-2'>
+                                                    <div className='font-semibold font-roboto'>Menarquia:</div>
+                                                    <div>{selectedPatient?.personalBackground.ginecoObstetric?.menarche}</div>
+                                                </div>
+                                                <div className='grid grid-cols-2 border-b-2 py-2'>
+                                                    <div className='font-semibold font-roboto'>Ciclos:</div>
+                                                    <div>{selectedPatient?.personalBackground.ginecoObstetric?.cycles}</div>
+                                                </div>
+                                                <div className='grid grid-cols-2 border-b-2 py-2'>
+                                                    <div className='font-semibold font-roboto'>FUM:</div>
+                                                    <div>{selectedPatient?.personalBackground.ginecoObstetric?.lastMenstruation}</div>
+                                                </div>
+                                                <div className='grid grid-cols-2 border-b-2 py-2'>
+                                                    <div className='font-semibold font-roboto'>Planificacion:</div>
+                                                    <div className='pl-2'>{selectedPatient?.personalBackground.ginecoObstetric?.planification}</div>
+                                                </div>
+                                                <div className='grid grid-cols-2 border-b-2'>
+                                                    <div className='font-semibold font-roboto py-2'>FUPAP:</div>
+                                                    <div>{selectedPatient?.personalBackground.ginecoObstetric?.papSmear}</div>
+                                                </div>
+                                                <div className='grid grid-cols-3'>
+                                                    <div className='font-semibold font-roboto py-2'>Observaciones:</div>
+                                                    <div className='col-span-2'>{selectedPatient?.personalBackground.ginecoObstetric?.observations}</div>
+                                                </div>
+
                                             </div>
-                                            <div className='grid grid-cols-2 lg:border-l-2 border-b-2 lg:border-b-0'>
-                                                <div className='font-semibold font-roboto pl-2'>G:</div>
-                                                <div >{selectedPatient?.personalBackground.ginecoObstetric?.OS.gestations}</div>
+                                        ) : (
+                                            <div className='flex flex-row my-2 py-2 items-center border-b-2'>
+                                                <div className='font-semibold font-roboto'>Ginecobstetrico:</div>
+                                                <div className='ml-2'> N/A</div>
                                             </div>
-                                            <div className='grid grid-cols-2 lg:border-l-2 border-b-2 lg:border-b-0'>
-                                                <div className='font-semibold font-roboto pl-2'>P:</div>
-                                                <div>{selectedPatient?.personalBackground.ginecoObstetric?.OS.births}</div>
-                                            </div>
-                                            <div className='grid grid-cols-2 lg:border-l-2 border-b-2 lg:border-b-0'>
-                                                <div className='font-semibold font-roboto pl-2'>C:</div>
-                                                <div>{selectedPatient?.personalBackground.ginecoObstetric?.OS.Caesarean}</div>
-                                            </div>
-                                            <div className='grid grid-cols-2 lg:border-l-2 border-b-2 lg:border-b-0'>
-                                                <div className='font-semibold font-roboto pl-2'>A:</div>
-                                                <div>{selectedPatient?.personalBackground.ginecoObstetric?.OS.abortions}</div>
-                                            </div>
-                                        </div>
-                                        <div className='grid grid-cols-2 border-b-2 py-2'>
-                                            <div className='font-semibold font-roboto'>Menarquia:</div>
-                                            <div>{selectedPatient?.personalBackground.ginecoObstetric?.menarche}</div>
-                                        </div>
-                                        <div className='grid grid-cols-2 border-b-2 py-2'>
-                                            <div className='font-semibold font-roboto'>Ciclos:</div>
-                                            <div>{selectedPatient?.personalBackground.ginecoObstetric?.cycles}</div>
-                                        </div>
-                                        <div className='grid grid-cols-2 border-b-2 py-2'>
-                                            <div className='font-semibold font-roboto'>FUM:</div>
-                                            <div>{selectedPatient?.personalBackground.ginecoObstetric?.lastMenstruation}</div>
-                                        </div>
-                                        <div className='grid grid-cols-2 border-b-2 py-2'>
-                                            <div className='font-semibold font-roboto'>Planificacion:</div>
-                                            <div className='pl-2'>{selectedPatient?.personalBackground.ginecoObstetric?.planification}</div>
-                                        </div>
-                                        <div className='grid grid-cols-2 border-b-2'>
-                                            <div className='font-semibold font-roboto py-2'>FUPAP:</div>
-                                            <div>{selectedPatient?.personalBackground.ginecoObstetric?.papSmear}</div>
-                                        </div>
-                                        <div className='grid grid-cols-3'>
-                                            <div className='font-semibold font-roboto py-2'>Observaciones:</div>
-                                            <div className='col-span-2'>{selectedPatient?.personalBackground.ginecoObstetric?.observations}</div>
-                                        </div>
+                                        )}
+
 
                                     </AccordionPanel>
                                 </AccordionItem>

@@ -23,7 +23,7 @@ export default function ExportPDF({ patientData, exportType, setAddEvolutionComp
     }
 
     return (
-        <div className='flex flex-col flex-grow h-full w-full'>
+        <div className='flex flex-col flex-grow h-full w-full px-5'>
             <div className='flex flex-row'>
                 <Button
                     onClick={returnPage}
@@ -33,7 +33,7 @@ export default function ExportPDF({ patientData, exportType, setAddEvolutionComp
                 </Button>
                 <PDFDownloadLink
                     document={patientData ? <PDFSummary patientData={patientData} /> : null}
-                    fileName={`${patientData?.personalData.name}${exportType}.pdf`}
+                    fileName={`${patientData?.personalData.name} Historia clinica ${exportType}.pdf`}
                 >
                     {({ loading }) => <DownloadButton loading={loading} />}
                 </PDFDownloadLink>
@@ -43,11 +43,11 @@ export default function ExportPDF({ patientData, exportType, setAddEvolutionComp
             </div>
             <div className='flex items-center justify-center w-full'>
                 {exportType === "resumen" ? (
-                    <PDFViewer width="100%" height="100%" className="border-2 border-gray-300">
+                    <PDFViewer width="90%" className="min-h-[calc(100vh-370px)]">
                         <PDFSummary patientData={patientData} />
                     </PDFViewer>
                 ) : (
-                    <PDFViewer width="100%" height="100%" className="border-2 border-gray-300">
+                    <PDFViewer width="100%" className="min-h-[calc(100vh-370px)]">
                         <PDFComplete patientData={patientData} />
                     </PDFViewer>
                 )}

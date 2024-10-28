@@ -99,7 +99,7 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent }: 
         setAddEvolutionComponent("list");
     }
     return (
-        <div className="flex flex-col flex-grow h-full w-full">
+        <div className="flex flex-col flex-grow h-full w-full px-5">
             
             <div className="flex ">
                 <Button

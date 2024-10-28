@@ -39,7 +39,7 @@ export default function Header() {
                 );
             case 'pacientesElement':
                 return (
-                    <PatientsPage></PatientsPage>
+                    <PatientsPage/>
                 );
             case 'settingsElement':
                 return (
@@ -61,7 +61,7 @@ export default function Header() {
         }
     };
     return (
-        <div className="flex flex-col max-h-screen ">
+        <div className="flex flex-col max-h-screen">
             <div className={`${isDarkMode ? "bg-mainBgDark" : "bg-white"} lg:flex flex-row justify-between px-5 hidden`}>
                 <div className='flex flex-row justify-center items-center w-44 h-20 m-2 bg-red-400'>
                     Company Name
@@ -108,7 +108,7 @@ export default function Header() {
                         </button>
                     </div>
                 </div>
-                <div className={`flex flex-grow flex-col w-full ${isDarkMode ? "bg-secondaryBgDark" : "bg-secondaryBgLight"} lg:h-[calc(100vh-95px)] h-full overflow-y-auto`}>
+                <div className={`flex flex-grow flex-col w-full ${isDarkMode ? "bg-secondaryBgDark" : "bg-secondaryBgLight"} lg:h-[calc(100vh-96px)] h-[calc(100vh-38px)] overflow-y-auto`}>
                     {renderTabContent()}
                 </div>
             </div>

@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Input, Textarea, Checkbox, Label, Divider, Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, DialogTrigger, InfoLabel } from "@fluentui/react-components";
+import { Checkbox, Label, Divider, Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, DialogTrigger, InfoLabel } from "@fluentui/react-components";
 import { PersonRegular, BriefcaseRegular, PersonChatRegular, SlideRecordRegular, ClockRegular, ClipboardCheckmarkRegular } from '@fluentui/react-icons';
 import { useUserContext } from '../context/userContext';
+import InputFieldWithIcon from './InputFieldWithIcon'
+import TextFieldWithIcon from './TextFieldWithIcon'
 
 export default function NewPatient() {
     const [loggedUser,] = useUserContext();
@@ -308,30 +310,9 @@ export default function NewPatient() {
         }));
     }
     return (
-        <div className='flex flex-col h-full w-full'>
-            <div className='flex flex-row justify-between px-10'>
+        <div className='flex flex-col h-full w-full overflow-y-auto'>
+            <div className='flex md:flex-row flex-col justify-between md:mx-5 mx-2'>
                 <div>
-                    <Dialog>
-                        <DialogTrigger disableButtonEnhancement>
-                            <Button disabled={!isComplete}>Guardar</Button>
-                        </DialogTrigger>
-                        <DialogSurface>
-                            <DialogBody>
-                                <DialogTitle>Confirmacion de envio de Evolucion</DialogTitle>
-                                <DialogContent>
-                                    Esta seguro que desea enviar la historia? Esto no se puede deshacer ni editar
-                                </DialogContent>
-                                <DialogActions>
-                                    <DialogTrigger disableButtonEnhancement>
-                                        <Button appearance="secondary">Volver</Button>
-                                    </DialogTrigger>
-                                    <DialogTrigger disableButtonEnhancement>
-                                        <Button appearance="primary">Enviar</Button>
-                                    </DialogTrigger>
-                                </DialogActions>
-                            </DialogBody>
-                        </DialogSurface>
-                    </Dialog>
                     <Dialog>
                         <DialogTrigger disableButtonEnhancement>
                             <Button disabled={!isChanged}  >Terminar mas tarde</Button>
@@ -353,6 +334,27 @@ export default function NewPatient() {
                             </DialogBody>
                         </DialogSurface>
                     </Dialog>
+                    <Dialog>
+                        <DialogTrigger disableButtonEnhancement>
+                            <Button disabled={!isComplete}>Guardar</Button>
+                        </DialogTrigger>
+                        <DialogSurface>
+                            <DialogBody>
+                                <DialogTitle>Confirmacion de envio de Evolucion</DialogTitle>
+                                <DialogContent>
+                                    Esta seguro que desea enviar la historia? Esto no se puede deshacer ni editar
+                                </DialogContent>
+                                <DialogActions>
+                                    <DialogTrigger disableButtonEnhancement>
+                                        <Button appearance="secondary">Volver</Button>
+                                    </DialogTrigger>
+                                    <DialogTrigger disableButtonEnhancement>
+                                        <Button appearance="primary">Enviar</Button>
+                                    </DialogTrigger>
+                                </DialogActions>
+                            </DialogBody>
+                        </DialogSurface>
+                    </Dialog>
                     <InfoLabel info=
                         {
                             <>
@@ -365,646 +367,127 @@ export default function NewPatient() {
                     />
                 </div>
                 <div className='flex flex-row'>
-                    <Label htmlFor='doctor' ><div className='text-base justify-center items-center font-roboto mr-2'>Doctor: </div> </Label>
-                    <Input id='doctor' name='doctor' contentBefore={<ClipboardCheckmarkRegular />} value={formData.doctor} onChange={(e) => setFormData({ ...formData, doctor: e.target.value })} />
+                    <InputFieldWithIcon label='Doctor: ' id='doctor' placeholder='Nombre del doctor' value={formData.doctor} handleDatachange={(e) => setFormData({ ...formData, doctor: e.target.value })} icon={<ClipboardCheckmarkRegular />} />
                 </div>
             </div>
-            <div className='flex flex-col justify-center items-center space-y-3'>
-                <div className='grid grid-cols-3 font-semibold gap-x-4 gap-y-2 mb-6'>
-                    <Divider className='col-span-3' appearance='strong' ><span className='text-xl font-roboto'>Datos personales</span></Divider>
-                    <div className='flex flex-col space-y-1'>
-                        <Label htmlFor='name'>Nombre del paciente</Label>
-                        <Input
-                            id='name'
-                            name='name'
-                            value={formData.personalData.name || ''}
-                            placeholder='Nombre del paciente'
-                            onChange={handlePersonalDataChange}
-                            contentBefore={<PersonRegular />}
-                        />
-                    </div>
-                    <div className='flex flex-col space-y-1'>
-                        <Label htmlFor='age'>Edad</Label>
-                        <Input
-                            id='age'
-                            name='age'
-                            type='number'
-                            value={formData.personalData.age + "" || ""}
-                            placeholder='Edad'
-                            onChange={handlePersonalDataChange}
-                            contentBefore={<ClockRegular />}
 
-                        />
-                    </div>
-                    <div className='flex flex-col space-y-1'>
-                        <Label htmlFor='dateOfBirth'>Fecha de nacimiento</Label>
-                        <Input
-                            id='dateOfBirth'
-                            name='dateOfBirth'
-                            type='date'
-                            value={formData.personalData.dateOfBirth}
-                            placeholder='Fecha de nacimiento'
-                            onChange={handlePersonalDataChange}
-                        />
-                    </div>
-                    <div className='flex flex-col space-y-1'>
-                        <Label htmlFor='occupation'>Ocupacion</Label>
-                        <Input
-                            id='occupation'
-                            name='occupation'
-                            value={formData.personalData.occupation}
-                            placeholder='Occupacion'
-                            onChange={handlePersonalDataChange}
-                            contentBefore={<BriefcaseRegular />}
-                        />
-                    </div>
-                    <div className='flex flex-col space-y-1'>
-                        <Label htmlFor='maritalStatus'>Estado civil</Label>
-                        <Input
-                            id='maritalStatus'
-                            name='maritalStatus'
-                            value={formData.personalData.maritalStatus}
-                            placeholder='Estado civil'
-                            onChange={handlePersonalDataChange}
-                            contentBefore={<PersonChatRegular />}
-                        />
-                    </div>
-                    <div className='flex flex-col space-y-1'>
-                        <Label htmlFor='identification'>Cedula</Label>
-                        <Input
-                            id='identification'
-                            name='identification'
-                            value={formData.personalData.identification}
-                            placeholder='Cedula'
-                            onChange={handlePersonalDataChange}
-                            contentBefore={<SlideRecordRegular />}
-                        />
-                    </div>
-                    <div className='col-span-3 flex flex-col space-y-1'>
-                        <Label htmlFor='address'>Direccion</Label>
-                        <Input
-                            id='address'
-                            name='address'
-                            value={formData.personalData.address}
-                            placeholder='Direccion'
-                            onChange={handlePersonalDataChange}
-                        />
-                    </div>
-                    <div className='flex flex-col space-y-1 col-span-3'>
-                        <Label htmlFor='phone'>Telefono</Label>
-                        <Input
-                            id='phone'
-                            name='phone'
-                            value={formData.personalData.phone}
-                            placeholder='Telefono'
-                            onChange={handlePersonalDataChange}
-                        />
-                    </div>
-                    <div className='col-span-3 flex flex-col space-y-1'>
-                        <Label htmlFor='mail'>Correo electronico</Label>
-                        <Input
-                            id='mail'
-                            name='mail'
-                            value={formData.personalData.mail}
-                            placeholder='Correo electronico'
-                            onChange={handlePersonalDataChange}
-                        />
-                    </div>
-                    <div className='col-span-3 flex flex-col space-y-1'>
-                        <Label htmlFor='religiousBelief'>Creencia religiosa</Label>
-                        <Input
-                            id='religiousBelief'
-                            name='religiousBelief'
-                            value={formData.personalData.religiousBelief}
-                            placeholder='Creencia religiosa'
-                            onChange={handlePersonalDataChange}
-                        />
-                    </div>
-                    <Divider className='col-span-3 mt-3' appearance='strong' ><span className='text-xl font-roboto'>Motivo de consulta</span></Divider>
-                    <div className='col-span-3 flex flex-col space-y-1'>
-                        <Label htmlFor='motive'>Motivo de consulta</Label>
-                        <Textarea
-                            id="motive"
-                            name="motive"
-                            value={formData.motive}
-                            onChange={(e) => setFormData({ ...formData, motive: e.target.value })}
-                            placeholder="Describe el motivo de consulta..."
-                            resize='vertical'
-                        />
-                    </div>
-                    <Divider className='col-span-3 mt-3' appearance='strong' ><span className='text-xl font-roboto'>Antecedentes personales</span></Divider>
-                    <div className='col-span-3 flex flex-col space-y-1'>
-                        <Label htmlFor='pathological'>Patologicos</Label>
-                        <Input
-                            id="pathological"
-                            name="pathological"
-                            value={formData.personalBackground.pathological}
-                            onChange={handlePersonalBackgroundChange}
-                            placeholder="Ingresa antecedentes patologicos..."
-                        />
-                    </div>
-                    <div className='col-span-3 flex flex-col space-y-1'>
-                        <Label htmlFor='farmacological'>Farmacologicos</Label>
-                        <Input
-                            id="farmacological"
-                            name="farmacological"
-                            value={formData.personalBackground.farmacological}
-                            onChange={handlePersonalBackgroundChange}
-                            placeholder="Ingresa antecedentes farmacologicos..."
-                        />
-                    </div>
-                    <div className='col-span-3 flex flex-col space-y-1'>
-                        <Label htmlFor='quirurgical'>Quirurgicos</Label>
-                        <Input
-                            id="quirurgical"
-                            name="quirurgical"
-                            value={formData.personalBackground.quirurgical}
-                            onChange={handlePersonalBackgroundChange}
-                            placeholder="Ingresa antecedentes quirurgicos..."
-                        />
-                    </div>
-                    <div className='col-span-3 flex flex-col space-y-1'>
-                        <Label htmlFor='trauma'>Trauma</Label>
-                        <Input
-                            id="trauma"
-                            name="trauma"
-                            value={formData.personalBackground.trauma}
-                            onChange={handlePersonalBackgroundChange}
-                            placeholder="Ingresa antecedentes de trauma ..."
-                        />
-                    </div>
-                    <div className='col-span-3 flex flex-col space-y-1'>
-                        <Label htmlFor='alergic'>Alergicos</Label>
-                        <Input
-                            id="alergic"
-                            name="alergic"
-                            value={formData.personalBackground.alergic}
-                            onChange={handlePersonalBackgroundChange}
-                            placeholder="Ingresa antecedentes alergicos..."
-                        />
-                    </div>
-                    <div className='col-span-3 flex flex-col space-y-1'>
-                        <Label htmlFor='toxic'>Toxicos</Label>
-                        <Input
-                            id="toxic"
-                            name="toxic"
-                            value={formData.personalBackground.toxic}
-                            onChange={handlePersonalBackgroundChange}
-                            placeholder="Ingresa antecedentes toxicos..."
-                        />
-                    </div>
-                    <div className='col-span-3 flex flex-col space-y-1'>
-                        <Label htmlFor='hospitalary'>Hospitalarios</Label>
-                        <Input
-                            id="hospitalary"
-                            name="hospitalary"
-                            value={formData.personalBackground.hospitalary}
-                            onChange={handlePersonalBackgroundChange}
-                            placeholder="Ingresa antecedentes hospitalarios..."
-                        />
-                    </div>
-                    <div>
+
+            <div className='flex justify-center space-y-3 mx-2'>
+                <div className='grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 grid-cols-1 font-semibold gap-x-4 gap-y-2 mb-6'>
+                    <Divider className='col-span-full' appearance='strong' ><span className='text-xl font-roboto'>Datos personales</span></Divider>
+                    <InputFieldWithIcon label='Nombre del paciente' id='name' placeholder='Nombre del paciente' value={formData.personalData.name || ''} handleDatachange={handlePersonalDataChange} icon={<PersonRegular />} />
+                    <InputFieldWithIcon label='Edad' id='age' placeholder='Edad del paciente' type='number' value={formData.personalData.age + '' || ''} handleDatachange={handlePersonalDataChange} icon={<ClockRegular />} />
+                    <InputFieldWithIcon label='Fecha de nac     imiento' id='dateOfBirth' type='date' placeholder='Ingrese fecha de nacimiento del paciente' value={formData.personalData.dateOfBirth} handleDatachange={handlePersonalDataChange} icon={<PersonRegular />} />
+                    <InputFieldWithIcon label='Ocupacion' id='occupation' placeholder='Ocupacion del paciente' value={formData.personalData.occupation} handleDatachange={handlePersonalDataChange} icon={<BriefcaseRegular />} />
+                    <InputFieldWithIcon label='Estado civil' id='maritalStatus' placeholder='Estado civil del paciente' value={formData.personalData.maritalStatus} handleDatachange={handlePersonalDataChange} icon={<PersonChatRegular />} />
+                    <InputFieldWithIcon label='Cedula' id='identification' placeholder='Cedula del paciente' value={formData.personalData.identification} handleDatachange={handlePersonalDataChange} icon={<SlideRecordRegular />} />
+                    <div className='col-span-full flex flex-col space-y-1'>
+                        <InputFieldWithIcon label='Direccion' id='address' placeholder='Direccion del paciente' value={formData.personalData.address} handleDatachange={handlePersonalDataChange} />
+                        <InputFieldWithIcon label='Telefono' id='phone' placeholder='Numero telefonico' value={formData.personalData.phone} handleDatachange={handlePersonalDataChange} />
+                        <InputFieldWithIcon label='Correo electronico' id='mail' placeholder='Correo electronico' value={formData.personalData.mail} handleDatachange={handlePersonalDataChange} />
+                        <InputFieldWithIcon label='Creencia religiosa' id='religiousBelief' placeholder='Creencia religiosa' value={formData.personalData.religiousBelief} handleDatachange={handlePersonalDataChange} />
+                        <Divider className='pt-3' appearance='strong' ><span className='text-xl font-roboto'>Motivo de consulta</span></Divider>
+                        <TextFieldWithIcon label='Motivo de consulta' id='motive' placeholder='Describe el motivo de la consulta' handleDatachange={(e) => setFormData({ ...formData, motive: e.target.value })} value={formData.motive} />
+                        <Divider className='pt-3' appearance='strong' ><span className='text-xl font-roboto'>Antecedentes personales</span></Divider>
+                        <InputFieldWithIcon label='Patologicos' id='pathological' placeholder='Antecedentes patologicos...' value={formData.personalBackground.pathological} handleDatachange={handlePersonalBackgroundChange} />
+                        <InputFieldWithIcon label='Farmacologicos' id='farmacological' placeholder='Antecedentes farmacologicos...' value={formData.personalBackground.farmacological} handleDatachange={handlePersonalBackgroundChange} />
+                        <InputFieldWithIcon label='Quirurgicos' id='quirurgical' placeholder='Antecedentes quirurgicos...' value={formData.personalBackground.quirurgical} handleDatachange={handlePersonalBackgroundChange} />
+                        <InputFieldWithIcon label='Trauma' id='trauma' placeholder='Antecedentes de trauma...' value={formData.personalBackground.trauma} handleDatachange={handlePersonalBackgroundChange} />
+                        <InputFieldWithIcon label='Alergicos' id='alergic' placeholder='Antecedentes alergicos...' value={formData.personalBackground.alergic} handleDatachange={handlePersonalBackgroundChange} />
+                        <InputFieldWithIcon label='Toxicos' id='toxic' placeholder='Antecedentes toxicos...' value={formData.personalBackground.toxic} handleDatachange={handlePersonalBackgroundChange} />
+                        <InputFieldWithIcon label='Hospitalarios' id='hospitalary' placeholder='Antecedentes hospitalarios...' value={formData.personalBackground.hospitalary} handleDatachange={handlePersonalBackgroundChange} />
                         <Checkbox label={'Es gineco-obstetrico?'} onChange={() => setIsGinecoObstetric(!isGinecoObstetric)} />
-                    </div>
-                    {!isGinecoObstetric ? null : (
-                        <div className='col-span-3 flex flex-col space-y-1 items-center'>
-                            <Label>Gineco-Obstetrico</Label>
-                            <div className='grid grid-cols-4 w-full gap-x-4'>
-                                <Label className='col-span-4 mb-3'>Formula obstetrica</Label>
-                                <div className='col-span-1'>
+                        {!isGinecoObstetric ? null : (
+                            <div className='col-span-full flex flex-col space-y-1 items-center'>
+                                <Label>Gineco-Obstetrico</Label>
+                                <div className='grid grid-cols-4 w-full gap-x-4'>
+                                    <Label className='col-span-full mb-3'>Formula obstetrica</Label>
                                     <Label>Gestaciones</Label>
-                                </div>
-                                <div className='col-span-1 '>
-                                    <Input
-                                        id="gestations"
-                                        name="gestations"
-                                        type='number'
-                                        value={formData.personalBackground.ginecoObstetric?.OS.gestations + "" || ""}
-                                        onChange={(e) => setFormData({ ...formData, personalBackground: { ...formData.personalBackground, ginecoObstetric: { ...formData.personalBackground.ginecoObstetric, OS: { ...formData.personalBackground.ginecoObstetric?.OS, gestations: parseInt(e.target.value) } } } })}
-                                        placeholder="Gestaciones"
-                                        className='w-full'
-                                    />
-                                </div>
-                                <div className='col-span-1'>
+                                    <InputFieldWithIcon id='gestations' type='number' placeholder='Gestaciones' value={formData.personalBackground.ginecoObstetric?.OS.gestations + "" || ""} handleDatachange={(e) => setFormData({ ...formData, personalBackground: { ...formData.personalBackground, ginecoObstetric: { ...formData.personalBackground.ginecoObstetric, OS: { ...formData.personalBackground.ginecoObstetric?.OS, gestations: parseInt(e.target.value) } } } })} />
                                     <Label>Partos</Label>
-                                </div>
-                                <div className='col-span-1 '>
-                                    <Input
-                                        id="births"
-                                        name="births"
-                                        type='number'
-                                        value={formData.personalBackground.ginecoObstetric?.OS.births + "" || ""}
-                                        onChange={(e) => setFormData({ ...formData, personalBackground: { ...formData.personalBackground, ginecoObstetric: { ...formData.personalBackground.ginecoObstetric, OS: { ...formData.personalBackground.ginecoObstetric?.OS, births: parseInt(e.target.value) } } } })}
-                                        placeholder="Partos"
-                                        className='w-full'
-                                    />
-                                </div>
-                                <div className='col-span-1'>
+                                    <InputFieldWithIcon id='births' type='number' placeholder='Partos' value={formData.personalBackground.ginecoObstetric?.OS.births + "" || ""} handleDatachange={(e) => setFormData({ ...formData, personalBackground: { ...formData.personalBackground, ginecoObstetric: { ...formData.personalBackground.ginecoObstetric, OS: { ...formData.personalBackground.ginecoObstetric?.OS, births: parseInt(e.target.value) } } } })} />
                                     <Label>Cesareas</Label>
-                                </div>
-                                <div className='col-span-1 '>
-                                    <Input
-                                        id="Caesarean"
-                                        name="Caesarean"
-                                        type='number'
-                                        value={formData.personalBackground.ginecoObstetric?.OS.Caesarean + "" || ""}
-                                        onChange={(e) => setFormData({ ...formData, personalBackground: { ...formData.personalBackground, ginecoObstetric: { ...formData.personalBackground.ginecoObstetric, OS: { ...formData.personalBackground.ginecoObstetric?.OS, Caesarean: parseInt(e.target.value) } } } })}
-                                        placeholder="Cesareas"
-                                        className='w-full'
-                                    />
-                                </div>
-                                <div className='col-span-1'>
+                                    <InputFieldWithIcon id='Caesarean' type='number' placeholder='Partos' value={formData.personalBackground.ginecoObstetric?.OS.Caesarean + "" || ""} handleDatachange={(e) => setFormData({ ...formData, personalBackground: { ...formData.personalBackground, ginecoObstetric: { ...formData.personalBackground.ginecoObstetric, OS: { ...formData.personalBackground.ginecoObstetric?.OS, births: parseInt(e.target.value) } } } })} />
                                     <Label>Abortos</Label>
-                                </div>
-                                <div className='col-span-1 '>
-                                    <Input
-                                        id="abortions"
-                                        name="abortions"
-                                        type='number'
-                                        value={formData.personalBackground.ginecoObstetric?.OS.abortions + "" || ""}
-                                        onChange={(e) => setFormData({ ...formData, personalBackground: { ...formData.personalBackground, ginecoObstetric: { ...formData.personalBackground.ginecoObstetric, OS: { ...formData.personalBackground.ginecoObstetric?.OS, abortions: parseInt(e.target.value) } } } })}
-                                        placeholder="Abortos"
-                                        className='w-full'
-                                    />
-                                </div>
-                                <div className='col-span-4 flex flex-col space-y-1'>
-                                    <Label>Ultima menstruacion</Label>
-                                    <Input
-                                        id="lastMenstruation"
-                                        name="lastMenstruation"
-                                        value={formData.personalBackground.ginecoObstetric?.lastMenstruation || ""}
-                                        onChange={(e) => setFormData({ ...formData, personalBackground: { ...formData.personalBackground, ginecoObstetric: { ...formData.personalBackground.ginecoObstetric, lastMenstruation: e.target.value, OS: formData.personalBackground.ginecoObstetric?.OS || {} } } })}
-                                        placeholder="Ultima menstruacion"
-                                        className='w-full'
-                                    />
-                                </div>
-                                <div className='col-span-4 flex flex-col space-y-1'>
-                                    <Label>Ciclos</Label>
-                                    <Input
-                                        id="cycles"
-                                        name="cycles"
-                                        value={formData.personalBackground.ginecoObstetric?.cycles || ""}
-                                        onChange={(e) => setFormData({ ...formData, personalBackground: { ...formData.personalBackground, ginecoObstetric: { ...formData.personalBackground.ginecoObstetric, cycles: e.target.value, OS: formData.personalBackground.ginecoObstetric?.OS || {} } } })}
-                                        placeholder="Ciclos"
-                                        className='w-full'
-                                    />
-                                </div>
-                                <div className='col-span-4 flex flex-col space-y-1'>
-                                    <Label>Menarquia</Label>
-                                    <Input
-                                        id="menarche"
-                                        name="menarche"
-                                        value={formData.personalBackground.ginecoObstetric?.menarche || ""}
-                                        onChange={(e) => setFormData({ ...formData, personalBackground: { ...formData.personalBackground, ginecoObstetric: { ...formData.personalBackground.ginecoObstetric, menarche: e.target.value, OS: formData.personalBackground.ginecoObstetric?.OS || {} } } })}
-                                        placeholder="Menarquia"
-                                        className='w-full'
-                                    />
-                                </div>
-                                <div className='col-span-4 flex flex-col space-y-1'>
-                                    <Label>Planificacion</Label>
-                                    <Input
-                                        id="planification"
-                                        name="planification"
-                                        value={formData.personalBackground.ginecoObstetric?.planification || ""}
-                                        onChange={(e) => setFormData({ ...formData, personalBackground: { ...formData.personalBackground, ginecoObstetric: { ...formData.personalBackground.ginecoObstetric, planification: e.target.value, OS: formData.personalBackground.ginecoObstetric?.OS || {} } } })}
-                                        placeholder="Planificacion"
-                                        className='w-full'
-                                    />
-                                </div>
-                                <div className='col-span-4 flex flex-col space-y-1'>
-                                    <Label>Ultimo Papanicolau</Label>
-                                    <Input
-                                        id="papSmear"
-                                        name="papSmear"
-                                        value={formData.personalBackground.ginecoObstetric?.papSmear || ""}
-                                        onChange={(e) => setFormData({ ...formData, personalBackground: { ...formData.personalBackground, ginecoObstetric: { ...formData.personalBackground.ginecoObstetric, papSmear: e.target.value, OS: formData.personalBackground.ginecoObstetric?.OS || {} } } })}
-                                        placeholder="Ultimo Papanicolau"
-                                        className='w-full'
-                                    />
-                                </div>
-                                <div className='col-span-4 flex flex-col space-y-1'>
-                                    <Label>Observaciones</Label>
-                                    <Textarea
-                                        id="observations"
-                                        name="observations"
-                                        value={formData.personalBackground.ginecoObstetric?.observations || ""}
-                                        onChange={(e) => setFormData({ ...formData, personalBackground: { ...formData.personalBackground, ginecoObstetric: { ...formData.personalBackground.ginecoObstetric, observations: e.target.value, OS: formData.personalBackground.ginecoObstetric?.OS || {} } } })}
-                                        placeholder="Ingrese observaciones..."
-                                        className='w-full'
-                                        resize='vertical'
-                                    />
+                                    <InputFieldWithIcon id='abortions' type='number' placeholder='Abortos' value={formData.personalBackground.ginecoObstetric?.OS.abortions + "" || ""} handleDatachange={(e) => setFormData({ ...formData, personalBackground: { ...formData.personalBackground, ginecoObstetric: { ...formData.personalBackground.ginecoObstetric, OS: { ...formData.personalBackground.ginecoObstetric?.OS, abortions: parseInt(e.target.value) } } } })} />
+                                    <div className='col-span-full flex flex-col space-y-1'>
+                                        <InputFieldWithIcon label='Ultima menstruacion' id='lastMenstruation' placeholder='Ultima menstruacion...' value={formData.personalBackground.ginecoObstetric?.lastMenstruation || ""} handleDatachange={(e) => setFormData({ ...formData, personalBackground: { ...formData.personalBackground, ginecoObstetric: { ...formData.personalBackground.ginecoObstetric, lastMenstruation: e.target.value, OS: formData.personalBackground.ginecoObstetric?.OS || {} } } })} />
+                                        <InputFieldWithIcon label='Ciclos' id='cycles' placeholder='Ciclos...' value={formData.personalBackground.ginecoObstetric?.cycles || ""} handleDatachange={(e) => setFormData({ ...formData, personalBackground: { ...formData.personalBackground, ginecoObstetric: { ...formData.personalBackground.ginecoObstetric, cycles: e.target.value, OS: formData.personalBackground.ginecoObstetric?.OS || {} } } })} />
+                                        <InputFieldWithIcon label='Menarquia' id='menarche' placeholder='Menarquia ...' value={formData.personalBackground.ginecoObstetric?.menarche || ""} handleDatachange={(e) => setFormData({ ...formData, personalBackground: { ...formData.personalBackground, ginecoObstetric: { ...formData.personalBackground.ginecoObstetric, menarche: e.target.value, OS: formData.personalBackground.ginecoObstetric?.OS || {} } } })} />
+                                        <InputFieldWithIcon label='Planificacion' id='planification' placeholder='Planificacion ...' value={formData.personalBackground.ginecoObstetric?.planification || ""} handleDatachange={(e) => setFormData({ ...formData, personalBackground: { ...formData.personalBackground, ginecoObstetric: { ...formData.personalBackground.ginecoObstetric, planification: e.target.value, OS: formData.personalBackground.ginecoObstetric?.OS || {} } } })} />
+                                        <InputFieldWithIcon label='Ultimo papanicolau' id='papSmear' placeholder='Ultimo papanicolau ...' value={formData.personalBackground.ginecoObstetric?.papSmear || ""} handleDatachange={(e) => setFormData({ ...formData, personalBackground: { ...formData.personalBackground, ginecoObstetric: { ...formData.personalBackground.ginecoObstetric, papSmear: e.target.value, OS: formData.personalBackground.ginecoObstetric?.OS || {} } } })} />
+                                        <TextFieldWithIcon label='Observaciones' id='observations' placeholder='Ingrese observaciones...' handleDatachange={(e) => setFormData({ ...formData, personalBackground: { ...formData.personalBackground, ginecoObstetric: { ...formData.personalBackground.ginecoObstetric, observations: e.target.value, OS: formData.personalBackground.ginecoObstetric?.OS || {} } } })} value={formData.personalBackground.ginecoObstetric?.observations || ""} />
+                                    </div>
                                 </div>
                             </div>
+                        )}
+                        <Divider className='pt-3' appearance='strong' ><span className='text-xl font-roboto'>Antecedentes familiares</span></Divider>
+                        <TextFieldWithIcon id='familyBackground' placeholder='Ingrese los antecedentes familiares...' handleDatachange={(e) => setFormData({ ...formData, familyBackground: e.target.value })} value={formData.familyBackground || ""} />
+                        <Divider className='pt-3' appearance='strong' ><span className='text-xl font-roboto'>Enfermedad actual</span></Divider>
+                        <TextFieldWithIcon id='currentIllness' placeholder='Ingrese la enfermedad actual...' handleDatachange={(e) => setFormData({ ...formData, currentIllness: e.target.value })} value={formData.currentIllness || ""} />
+                        <Divider className='pt-3' appearance='strong' ><span className='text-xl font-roboto'>Revision por sistemas</span></Divider>
+                        <div className='col-span-full space-y-1 items-center grid grid-cols-2 w-full gap-x-4'>
+                            <InputFieldWithIcon label='Piel y Fanera' id='skin' placeholder='Ingrese revision de piel y fanera' value={formData.systemReview.skin} handleDatachange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, skin: e.target.value } })} />
+                            <InputFieldWithIcon label='Genitourinario' id='genitourinary' placeholder='Ingrese revision del sistema genitourinario' value={formData.systemReview.genitourinary} handleDatachange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, genitourinary: e.target.value } })} />
+                            <InputFieldWithIcon label='Colageno' id='collagen' placeholder='Ingrese revision de colageno' value={formData.systemReview.collagen} handleDatachange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, collagen: e.target.value } })} />
+                            <InputFieldWithIcon label='Musculoesqueletico' id='musculoskeletal' placeholder='Ingrese revision del sistema musculoesqueletico' value={formData.systemReview.musculoskeletal} handleDatachange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, musculoskeletal: e.target.value } })} />
+                            <InputFieldWithIcon label='Linfatico' id='lymphatic' placeholder='Ingrese revision del sistema linfatico' value={formData.systemReview.lymphatic} handleDatachange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, lymphatic: e.target.value } })} />
+                            <InputFieldWithIcon label='Alimentacion' id='feeding' placeholder='Ingrese revision de alimentacion' value={formData.systemReview.feeding} handleDatachange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, feeding: e.target.value } })} />
+                            <InputFieldWithIcon label='Auditivo' id='auditive' placeholder='Ingrese revision del sistema auditivo' value={formData.systemReview.auditive} handleDatachange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, auditive: e.target.value } })} />
+                            <InputFieldWithIcon label='Sueño' id='sleep' placeholder='Ingrese revision del sueño' value={formData.systemReview.sleep} handleDatachange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, sleep: e.target.value } })} />
+                            <InputFieldWithIcon label='Visual' id='visual' placeholder='Ingrese revision del sitema visual' value={formData.systemReview.visual} handleDatachange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, visual: e.target.value } })} />
+                            <InputFieldWithIcon label='Actividad fisica' id='physicalActivity' placeholder='Ingrese revision de la actividad fisica' value={formData.systemReview.physicalActivity} handleDatachange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, physicalActivity: e.target.value } })} />
+                            <InputFieldWithIcon label='Respiratorio' id='respiratory' placeholder='Ingrese revision del sistema respiratorio' value={formData.systemReview.respiratory} handleDatachange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, respiratory: e.target.value } })} />
+                            <InputFieldWithIcon label='Psicosocial' id='psychosocial' placeholder='Ingrese revision psicosocial' value={formData.systemReview.psychosocial} handleDatachange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, psychosocial: e.target.value } })} />
+                            <InputFieldWithIcon label='Digestivo' id='digestive' placeholder='Ingrese revision del sistema digestivo' value={formData.systemReview.digestive} handleDatachange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, digestive: e.target.value } })} />
                         </div>
-                    )}
-                    <Divider className='col-span-3 mt-3' appearance='strong' ><span className='text-xl font-roboto'>Antecedentes familiares</span></Divider>
-                    <div className='col-span-3 flex flex-col space-y-1'>
-                        <Textarea
-                            id="familyBackground"
-                            name="familyBackground"
-                            value={formData.familyBackground || ""}
-                            onChange={(e) => setFormData({ ...formData, familyBackground: e.target.value })}
-                            placeholder="Ingrese los antecedentes familiares..."
-                            className='w-full'
-                            resize='vertical'
-                        />
-                    </div>
-                    <Divider className='col-span-3 mt-3' appearance='strong' ><span className='text-xl font-roboto'>Enfermedad actual</span></Divider>
-                    <div className='col-span-3 flex flex-col space-y-1'>
-                        <Textarea
-                            id="currentIllness"
-                            name="currentIllness"
-                            value={formData.currentIllness || ""}
-                            onChange={(e) => setFormData({ ...formData, currentIllness: e.target.value })}
-                            placeholder="Ingrese la enfermedad actual..."
-                            className='w-full'
-                            resize='vertical'
-                        />
-                    </div>
-                    <Divider className='col-span-3 mt-3' appearance='strong' ><span className='text-xl font-roboto'>Revision por sistemas</span></Divider>
-                    <div className='col-span-3 space-y-1 items-center grid grid-cols-2 w-full gap-x-4'>
-                        <div className='flex flex-col space-y-1'>
-                            <Label htmlFor='skin'>Piel y Fanera</Label>
-                            <Input
-                                id='skin'
-                                name='skin'
-                                value={formData.systemReview.skin}
-                                onChange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, skin: e.target.value } })}
-                                placeholder='Ingrese revision de piel y fanera'
-                            />
+                        <Divider className='py-3' appearance='strong' ><span className='text-xl font-roboto'>Familiograma</span></Divider>
+                        <TextFieldWithIcon id='familyogram' placeholder='Familiograma' handleDatachange={(e) => setFormData({ ...formData, familyogram: e.target.value })} value={formData.familyogram || ""} />
+                        <Divider className='py-3' appearance='strong' ><span className='text-xl font-roboto'>Examen fisico</span></Divider>
+                        <div className='grid grid-cols-2'>
+                            <InputFieldWithIcon label='Frecuencia cardiaca (lpm)' type='number' id='heartRate' placeholder='Frecuencia cardiaca' value={formData.physicalExam.heartRate + "" || ""} handleDatachange={(e) => setFormData({ ...formData, physicalExam: { ...formData.physicalExam, heartRate: parseFloat(e.target.value) } })} />
+                            <InputFieldWithIcon label='Frecuencia respiratoria (rpm)' type='number' id='respiratoryRate' placeholder='Frecuencia respiratoria' value={formData.physicalExam.respiratoryRate + "" || ""} handleDatachange={(e) => setFormData({ ...formData, physicalExam: { ...formData.physicalExam, respiratoryRate: parseFloat(e.target.value) } })} />
+                            <InputFieldWithIcon label='Tension arterial' id='bloodPressure' placeholder='Presion arterial' value={formData.physicalExam.bloodPressure + "" || ""} handleDatachange={(e) => setFormData({ ...formData, physicalExam: { ...formData.physicalExam, bloodPressure: e.target.value } })} />
+                            <InputFieldWithIcon label='saturation' id='saturation' type='number' placeholder='Saturacion' value={formData.physicalExam.saturation + ""} handleDatachange={(e) => setFormData({ ...formData, physicalExam: { ...formData.physicalExam, saturation: parseFloat(e.target.value) } })} />
+                            <InputFieldWithIcon label='Temperatura (C)' id='temperature' type='number' placeholder='Temperatura' value={formData.physicalExam.temperature + ""} handleDatachange={(e) => setFormData({ ...formData, physicalExam: { ...formData.physicalExam, temperature: parseFloat(e.target.value) } })} />
+                            <InputFieldWithIcon label='Peso (kg)' id='weight' type='number' placeholder='Peso' value={formData.physicalExam.weight + ""} handleDatachange={(e) => setFormData({ ...formData, physicalExam: { ...formData.physicalExam, weight: parseFloat(e.target.value) } })} />
+                            <InputFieldWithIcon label='Talla (m)' id='size' type='number' placeholder='Talla' value={formData.physicalExam.size + ""} handleDatachange={(e) => setFormData({ ...formData, physicalExam: { ...formData.physicalExam, size: parseFloat(e.target.value) } })} />
+                            <InputFieldWithIcon label='IMC' id='IMC' type='number' placeholder='IMC' value={formData.physicalExam.IMC + ""} handleDatachange={(e) => setFormData({ ...formData, physicalExam: { ...formData.physicalExam, IMC: parseFloat(e.target.value) } })} />
                         </div>
-                        <div className='flex flex-col space-y-1'>
-                            <Label htmlFor='genitourinary'>Genitourinario</Label>
-                            <Input
-                                id='genitourinary'
-                                name='genitourinary'
-                                value={formData.systemReview.genitourinary}
-                                onChange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, genitourinary: e.target.value } })}
-                                placeholder='Ingrese revision del sistema genitourinario'
-                            />
-                        </div>
-
-                        <div className='flex flex-col space-y-1'>
-                            <Label htmlFor='collagen'>Colageno</Label>
-                            <Input
-                                id='collagen'
-                                name='collagen'
-                                value={formData.systemReview.collagen}
-                                onChange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, collagen: e.target.value } })}
-                                placeholder='Ingrese revision de colageno'
-                            />
-                        </div>
-                        <div className='flex flex-col space-y-1'>
-                            <Label htmlFor='musculoskeletal'>Musculoesqueletico</Label>
-                            <Input
-                                id='musculoskeletal'
-                                name='musculoskeletal'
-                                value={formData.systemReview.musculoskeletal}
-                                onChange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, musculoskeletal: e.target.value } })}
-                                placeholder='Ingrese revision del sistema musculoesqueletico'
-                            />
-                        </div>
-                        <div className='flex flex-col space-y-1'>
-                            <Label htmlFor='lymphatic'>Linfatico</Label>
-                            <Input
-                                id='lymphatic'
-                                name='lymphatic'
-                                value={formData.systemReview.lymphatic}
-                                onChange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, lymphatic: e.target.value } })}
-                                placeholder='Ingrese revision del sistema linfatico'
-                            />
-                        </div>
-                        <div className='flex flex-col space-y-1'>
-                            <Label htmlFor='feeding'>Alimentacion</Label>
-                            <Input
-                                id='feeding'
-                                name='feeding'
-                                value={formData.systemReview.feeding}
-                                onChange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, feeding: e.target.value } })}
-                                placeholder='Ingrese revision de alimentacion'
-                            />
-                        </div>
-                        <div className='flex flex-col space-y-1'>
-                            <Label htmlFor='auditive'>Auditivo</Label>
-                            <Input
-                                id='auditive'
-                                name='auditive'
-                                value={formData.systemReview.auditive}
-                                onChange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, auditive: e.target.value } })}
-                                placeholder='Ingrese revision del sistema auditivo'
-                            />
-                        </div>
-                        <div className='flex flex-col space-y-1'>
-                            <Label htmlFor='sleep'>Sueño</Label>
-                            <Input
-                                id='sleep'
-                                name='sleep'
-                                value={formData.systemReview.sleep}
-                                onChange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, sleep: e.target.value } })}
-                                placeholder='Ingrese revision del sueño'
-                            />
-                        </div>
-                        <div className='flex flex-col space-y-1'>
-                            <Label htmlFor='visual'>Visual</Label>
-                            <Input
-                                id='visual'
-                                name='visual'
-                                value={formData.systemReview.visual}
-                                onChange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, visual: e.target.value } })}
-                                placeholder='Ingrese revision del sistema visual'
-                            />
-                        </div>
-                        <div className='flex flex-col space-y-1'>
-                            <Label htmlFor='physicalActivity'>Actividad fisica</Label>
-                            <Input
-                                id='physicalActivity'
-                                name='physicalActivity'
-                                value={formData.systemReview.physicalActivity}
-                                onChange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, physicalActivity: e.target.value } })}
-                                placeholder='Ingrese revision de la actividad fisica'
-                            />
-                        </div>
-                        <div className='flex flex-col space-y-1'>
-                            <Label htmlFor='respiratory'>Respiratorio</Label>
-                            <Input
-                                id='respiratory'
-                                name='respiratory'
-                                value={formData.systemReview.respiratory}
-                                onChange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, respiratory: e.target.value } })}
-                                placeholder='Ingrese revision ddel sistema respiratorio'
-                            />
-                        </div>
-                        <div className='flex flex-col space-y-1'>
-                            <Label htmlFor='psychosocial'>Psicosocial</Label>
-                            <Input
-                                id='psychosocial'
-                                name='psychosocial'
-                                value={formData.systemReview.psychosocial}
-                                onChange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, psychosocial: e.target.value } })}
-                                placeholder='Ingrese revision psicosocial'
-                            />
-                        </div>
-                        <div className='flex flex-col space-y-1'>
-                            <Label htmlFor='digestive'>Digestivo</Label>
-                            <Input
-                                id='digestive'
-                                name='digestive'
-                                value={formData.systemReview.digestive}
-                                onChange={(e) => setFormData({ ...formData, systemReview: { ...formData.systemReview, digestive: e.target.value } })}
-                                placeholder='Ingrese revision del sistema digestivo'
-                            />
-                        </div>
-                    </div>
-                    <Divider className='col-span-3 mt-3' appearance='strong' ><span className='text-xl font-roboto'>Familiograma</span></Divider>
-                    <div className='col-span-3 flex flex-col space-y-1'>
-                        <Textarea
-                            id="currentIllness"
-                            name="currentIllness"
-                            value={formData.familyogram || ""}
-                            onChange={(e) => setFormData({ ...formData, familyogram: e.target.value })}
-                            placeholder="Familiograma"
-                            className='w-full'
-                            resize='vertical'
-                        />
-                    </div>
-                    <Divider className='col-span-3 mt-3' appearance='strong' ><span className='text-xl font-roboto'>Examen fisico</span></Divider>
-                    <div className='flex flex-col space-y-1'>
-                        <Label htmlFor='heartRate'>Frecuencia cardiaca (lpm)</Label>
-                        <Input
-                            id='heartRate'
-                            name='heartRate'
-                            type='number'
-                            value={formData.physicalExam.heartRate + "" || ""}
-                            onChange={(e) => setFormData({ ...formData, physicalExam: { ...formData.physicalExam, heartRate: parseFloat(e.target.value) } })}
-                            placeholder='Frecuencia cardiaca'
-                        />
-                    </div>
-                    <div className='flex flex-col space-y-1'>
-                        <Label htmlFor='respiratoryRate'>Frecuencia respiratoria (rpm)</Label>
-                        <Input
-                            id='respiratoryRate'
-                            name='respiratoryRate'
-                            type='number'
-                            value={formData.physicalExam.respiratoryRate + "" || ""}
-                            onChange={(e) => setFormData({ ...formData, physicalExam: { ...formData.physicalExam, respiratoryRate: parseFloat(e.target.value) } })}
-                            placeholder='Frecuencia respiratoria'
-                        />
-                    </div>
-                    <div className='flex flex-col space-y-1'>
-                        <Label htmlFor='bloodPressure'>Tension arterial</Label>
-                        <Input
-                            id='bloodPressure'
-                            name='bloodPressure'
-                            value={formData.physicalExam.bloodPressure}
-                            onChange={(e) => setFormData({ ...formData, physicalExam: { ...formData.physicalExam, bloodPressure: e.target.value } })}
-                            placeholder='Presion arterial'
-                        />
-                    </div>
-                    <div className='flex flex-col space-y-1'>
-                        <Label htmlFor='saturation'>Saturacion(%)</Label>
-                        <Input
-                            id='saturation'
-                            name='saturation'
-                            value={formData.physicalExam.saturation + ""}
-                            type='number'
-                            onChange={(e) => setFormData({ ...formData, physicalExam: { ...formData.physicalExam, saturation: parseFloat(e.target.value) } })}
-                            placeholder='Saturacion'
-                        />
-                    </div>
-                    <div className='flex flex-col space-y-1'>
-                        <Label htmlFor='temperature'>Temperatura (C)</Label>
-                        <Input
-                            id='temperature'
-                            name='temperature'
-                            type='number'
-                            value={formData.physicalExam.temperature + ""}
-                            onChange={(e) => setFormData({ ...formData, physicalExam: { ...formData.physicalExam, temperature: parseFloat(e.target.value) } })}
-                            placeholder='Temperatura'
-                        />
-                    </div>
-                    <div className='flex flex-col space-y-1'>
-                        <Label htmlFor='weight'>Peso (kg)</Label>
-                        <Input
-                            id='weight'
-                            name='weight'
-                            type='number'
-                            value={formData.physicalExam.weight + ""}
-                            onChange={(e) => setFormData({ ...formData, physicalExam: { ...formData.physicalExam, weight: parseInt(e.target.value) } })}
-                            placeholder='Peso'
-                        />
-                    </div>
-                    <div className='flex flex-col space-y-1'>
-                        <Label htmlFor='size'>Talla (m)</Label>
-                        <Input
-                            id='size'
-                            name='size'
-                            type='number'
-                            value={formData.physicalExam.size + ""}
-                            onChange={(e) => setFormData({ ...formData, physicalExam: { ...formData.physicalExam, size: parseFloat(e.target.value) } })}
-                            placeholder='Talla'
-                        />
-                    </div>
-                    <div className='flex flex-col space-y-1'>
-                        <Label htmlFor='IMC'>IMC</Label>
-                        <Input
-                            id='IMC'
-                            name='IMC'
-                            type='number'
-                            value={formData.physicalExam.IMC + "" || ""}
-                            placeholder='IMC'
-                        />
-                    </div>
-                    <div className='flex flex-col space-y-1 col-span-3'>
-                        <Label htmlFor='IMC'>Examen Fisico</Label>
-                        <Textarea
-                            id='IMC'
-                            name='IMC'
-                            value={formData.physicalExam.physicalExam}
-                            placeholder='Ingrese el examen fisico...'
-                            onChange={(e) => setFormData({ ...formData, physicalExam: { ...formData.physicalExam, physicalExam: e.target.value } })}
-                            resize='vertical'
-                        />
-                    </div>
-                    <Divider className='col-span-3 mt-3' appearance='strong' ><span className='text-xl font-roboto'>Diagnostico</span></Divider>
-                    <div className='grid grid-col-2  col-span-3 '>
-
-                        <Button onClick={addDiagnostic}>Agregar diagnostico</Button>
-                        <Button onClick={removeDiagnostic}>Remover diagnostico</Button>
-                        <div className='col-span-2'>
-                            {list.map((_x, i) => (
-                                <div key={i} className='flex flex-col space-y-1'>
-                                    <Input
-                                        id='diagnostic'
-                                        name='diagnostic'
-                                        value={formData.diagnostic[i].description}
-                                        onChange={(e) => {
-                                            const newDiagnostic = formData.diagnostic.map((item, index) => {
-                                                if (i === index) {
-                                                    return { description: e.target.value }
-                                                }
-                                                return item;
-                                            });
-                                            setFormData({ ...formData, diagnostic: newDiagnostic });
-                                        }}
-                                        placeholder='Ingrese el diagnostico...'
-                                    />
+                        <TextFieldWithIcon label='Examen Fisico' id='physicalExam' placeholder='Ingrese el examen fisico...' handleDatachange={(e) => setFormData({ ...formData, physicalExam: { ...formData.physicalExam, physicalExam: e.target.value } })} value={formData.physicalExam.physicalExam} />
+                        <Label htmlFor='physicalExam'>Examen Fisico</Label>
+                        <Divider className='pt-3' appearance='strong' ><span className='text-xl font-roboto'>Diagnostico</span></Divider>
+                        <div className='col-span-full'>
+                            <div className='grid grid-col-2'>
+                                <Button onClick={addDiagnostic}>Agregar diagnostico</Button>
+                                <Button onClick={removeDiagnostic}>Remover diagnostico</Button>
+                                <div className='col-span-2'>
+                                    {list.map((_x, i) => (
+                                        <div key={i} className='flex flex-col space-y-1'>
+                                            <InputFieldWithIcon id='diagnostic' placeholder='Ingrese el diagnostico...' value={formData.diagnostic[i].description} handleDatachange={(e) => {
+                                                const newDiagnostic = formData.diagnostic.map((item, index) => {
+                                                    if (i === index) {
+                                                        return { description: e.target.value }
+                                                    }
+                                                    return item;
+                                                });
+                                                setFormData({ ...formData, diagnostic: newDiagnostic });
+                                            }} />
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
-                    </div>
-                    <Divider className='col-span-3 mt-3' appearance='strong' ><span className='text-xl font-roboto'>Tratamiento</span></Divider>
-                    <div className='grid grid-col-2  col-span-3 '>
-                        <Button onClick={addTreatment}>Agregar tratamiento</Button>
-                        <Button onClick={removeTreatment}>Remover tratamiento</Button>
+                            </div>
 
-                        <div className='col-span-2'>
-                            {list2.map((_x, i) => (
-                                <div key={i} className='flex flex-col space-y-1'>
-                                    <Input
-                                        id='treatment'
-                                        name='treatment'
-                                        value={formData.treatment[i].description}
-                                        onChange={(e) => {
+                        </div>
+                        <Divider className='pt-3' appearance='strong' ><span className='text-xl font-roboto'>Tratamiento</span></Divider>
+                        <div className='grid grid-col-2 col-span-full'>
+                            <Button onClick={addTreatment}>Agregar tratamiento</Button>
+                            <Button onClick={removeTreatment}>Remover tratamiento</Button>
+
+                            <div className='col-span-2'>
+                                {list2.map((_x, i) => (
+                                    <div key={i} className='flex flex-col space-y-1'>
+                                        <InputFieldWithIcon id='treatment' placeholder='Ingrese el tratamiento...' value={formData.treatment[i].description} handleDatachange={(e) => {
                                             const newTreatment = formData.treatment.map((item, index) => {
                                                 if (i === index) {
                                                     return { description: e.target.value }
@@ -1012,19 +495,15 @@ export default function NewPatient() {
                                                 return item;
                                             });
                                             setFormData({ ...formData, treatment: newTreatment });
-                                        }}
-                                        placeholder='Ingrese el tratamiento...'
-                                    />
-                                </div>
-                            ))}
+                                        }} />
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
-                    <Divider></Divider>
-
+                    <Divider />
                 </div>
-
             </div>
-
         </div>
     );
 }
