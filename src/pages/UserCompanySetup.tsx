@@ -7,25 +7,24 @@ import {
     Breadcrumb,
     BreadcrumbItem,
     BreadcrumbButton,
-    Input,
-    Label,
-    Textarea,
     InfoLabel,
 } from '@fluentui/react-components';
-
+import InputFieldWithIcon from '../components/InputFieldWithIcon.tsx';
+import TextFieldWithIcon from '../components/TextFieldWithIcon.tsx';
 
 export default function UserCompanySetup() {
     const navigate = useNavigate();
-    // useEffect(() => {
-    //     client.auth.onAuthStateChange((_event, session) => {
-    //         if(!session) {
-    //             console.log('User not logged in');
-    //             navigate('/login');
-    //         }else{
-    //             console.log('User logged in', session);
-    //         }
-    //     })
-    // }, []);
+    useEffect(() => {
+        client.auth.onAuthStateChange((_event, session) => {
+            if (!session) {
+                console.log('User not logged in');
+                navigate('/login');
+            } else {
+                console.log('User logged in', session);
+            }
+        })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const [data, setData] = useState({
         consultoryName: '',
@@ -33,37 +32,36 @@ export default function UserCompanySetup() {
         address: '',
         description: ''
     });
+    const [joinRequestCode,setJoinRequestCode] = useState('')
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setData({
-            ...data,
-            [e.target.id]: e.target.value
-        });
-
-    }
+        const { name, value } = e.target;
+        setData(prevData => ({
+            ...prevData,
+            [name]: value
+        }));
+    };
+    
     const { isDarkMode } = useThemeContext();
     const [isCreateCompany, setIsCreateCompany] = useState(true);
+
+    const createConsultory = () => {
+        console.log('creating consultory')
+    }
+    const sendJoinRequest = () => {
+        console.log('Attempting to join with code ',joinRequestCode)
+    }
     const showOptionSelected = () => {
         if (isCreateCompany) {
             return (
-                <div className='grid grid-cols-2 space-y-5'>
-                    <div className='flex flex-col mt-5 w-full lg:col-span-1 col-span-2'>
-                        <Label htmlFor='companyName'>Ingrese el nombre del consultorio:</Label>
-                        <Input id='companyName' value={data.consultoryName} onChange={(e) => handleChange(e)}/>
+                <div className='grid md:grid-cols-2 grid-cols-1'>
+                    <InputFieldWithIcon id='consultoryName' placeholder='Nombre de la compañia' value={data.consultoryName} handleDatachange={(e) => handleChange(e)} label='Ingrese el nombre del consultorio:' />
+                    <InputFieldWithIcon id='phoneNumber' placeholder='Numero de telefono' value={data.phoneNumber} handleDatachange={(e) => handleChange(e)} label='Ingrese el numero de telefono:' />
+                    <div className='flex flex-col mp-2 col-span-full '>
+                        <TextFieldWithIcon handleDatachange={(e) => handleChange(e)} id='address' placeholder='Ingrese la direccion: ' value={data.address} label='Ingrese la direccion del consultorio:' />
+                        <TextFieldWithIcon handleDatachange={(e) => handleChange(e)} id='description' placeholder='Ingrese la breve descripcion: ' value={data.description} label='Ingrese una breve descripcion del consultorio:' />
                     </div>
-                    <div className='flex flex-col mt-5 lg:col-span-1 col-span-2'>
-                        <Label htmlFor='companyName'>Ingrese el numero de telefono:</Label>
-                        <Input id='companyName' value={data.phoneNumber} onChange={(e) => handleChange(e)}/>
-                    </div>
-                    <div className='flex flex-col mt-5 col-span-2 '>
-                        <Label htmlFor='companyName'>Ingrese la direccion del consultorio:</Label>
-                        <Textarea id='companyName' value={data.address} onChange={(e) => handleChange(e)}/>
-                    </div>
-                    <div className='flex flex-col mt-5 col-span-2'>
-                        <Label htmlFor='companyName'>Ingrese una breve descripcion del consultorio:</Label>
-                        <Textarea id='companyName'  value={data.description} onChange={(e) => handleChange(e)}/>
-                    </div>
-                    <Button className='col-span-2'>Crear Empresa</Button>
+                    <Button className='col-span-full' onClick={createConsultory}>Crear Empresa</Button>
                 </div>
             );
         } else {
@@ -72,47 +70,45 @@ export default function UserCompanySetup() {
                     <div className='flex flex-col mb-5'>
                         <InfoLabel info={
                             <>
-                            <p>Solicite al administrador de la empresa el codigo de identificacion.</p>
-                            <p>Este se encuentra en la esquina superior derecha de la pantalla de inicio.</p>
+                                <p>Solicite al administrador de la empresa el codigo de identificacion.</p>
+                                <p>Este se encuentra en la esquina superior derecha de la pantalla de inicio.</p>
                             </>
                         }>
                             Ingrese el codigo identificador de la empresa
                         </InfoLabel>
-                        <Input className='w-full' />
+                        <InputFieldWithIcon id='companyCode' placeholder='Codigo de empresa' value={joinRequestCode} handleDatachange={(e) => setJoinRequestCode(e.target.value)}/>
                     </div>
-                    <Button>Solicitar unirme</Button>
+                    <Button onClick={sendJoinRequest}>Solicitar unirme</Button>
                 </div>
             );
         }
     }
     return (
-        <div className={`${isDarkMode ? "bg-mainBgDark" : "bg-white"} h-screen flex flex-col overflow-auto`}>
+        <div className={`${isDarkMode ? "bg-mainBgDark" : "bg-white"} h-[100vh] max-w-[100hw] max-full flex flex-col`}>
             <div className='flex flex-col items-center'>
                 <h1 className='font-roboto text-4xl font-extrabold my-10'>Crea tu consultorio</h1>
             </div>
             <div className='flex flex-col items-center'>
-                <div className={`${isDarkMode ? "bg-secondaryBgDark" : "bg-secondaryBgLight"} flex flex-col w-3/5 items-center rounded-lg`}>
-                    <Breadcrumb aria-label='Breadcrumb to setup company' className='my-3'>
-                        <BreadcrumbItem>
-                            <BreadcrumbButton onClick={() => setIsCreateCompany(true)}>
-                                Crea tu empresa
-                            </BreadcrumbButton>
-                        </BreadcrumbItem>
-                        <BreadcrumbItem>
-                            <BreadcrumbButton onClick={() => setIsCreateCompany(false)}>
-                                Unete a una empresa
-                            </BreadcrumbButton>
-                        </BreadcrumbItem>
-                    </Breadcrumb>
+                <div className={`${isDarkMode ? "bg-secondaryBgDark" : "bg-secondaryBgLight"} flex flex-col  items-center rounded-lg`}>
+                    <div className='overflow-x-auto '>
+                        <Breadcrumb aria-label='Breadcrumb to setup company' className='py-3'>
+                            <BreadcrumbItem>
+                                <BreadcrumbButton onClick={() => setIsCreateCompany(true)}>
+                                    Crea tu empresa
+                                </BreadcrumbButton>
+                            </BreadcrumbItem>
+                            <BreadcrumbItem>
+                                <BreadcrumbButton onClick={() => setIsCreateCompany(false)}>
+                                    Unete a una empresa
+                                </BreadcrumbButton>
+                            </BreadcrumbItem>
+                        </Breadcrumb>
+                    </div>
                     <div className='mb-5 w-full px-5'>
                         {showOptionSelected()}
                     </div>
                 </div>
-
-
             </div>
-
-
         </div>
     );
 }
