@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/userContext';
 import { Label, Input, Button, Checkbox } from '@fluentui/react-components';
 import { client } from '../supabase/client';
-import {EyeOffRegular, EyeRegular} from '@fluentui/react-icons';
+import { EyeOffRegular, EyeRegular } from '@fluentui/react-icons';
+import { useThemeContext } from '../context/themeContext';
 
 export default function LogInPage() {
   const [email, setEmail] = useState('')
@@ -17,9 +18,6 @@ export default function LogInPage() {
   }
 
   const [, setUserData] = userContext;
-
-
-
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -53,20 +51,21 @@ export default function LogInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const MicButton: React.FC = () => {
     return (
-        <Button
-            onClick={() => setShowPassword(!showPassword)}
-            icon={showPassword ? <EyeOffRegular /> : <EyeRegular />}
-            appearance='transparent'
-            size='small'
-        />
+      <Button
+        onClick={() => setShowPassword(!showPassword)}
+        icon={showPassword ? <EyeOffRegular /> : <EyeRegular />}
+        appearance='transparent'
+        size='small'
+      />
     )
-}
+  }
+  const { isDarkMode,  } = useThemeContext();
   return (
     <div className="flex h-screen">
-      <div className="w-full flex items-center justify-center">
-        <div className="w-full max-w-xl space-y-8 p-10 bg-blue-900/50 rounded-lg">
+      <div className={`w-full flex items-center justify-center bg-gradient-to-br ${isDarkMode ? 'from-black to-gray-500':'from-blue-700 to-blue-100"'}`}>
+        <div className={`w-full max-w-xl space-y-8 p-10 ${isDarkMode ? 'bg-[#242424]/80':'bg-white/80'} rounded-lg`}>
           <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold font-roboto text-white">
+            <h2 className="mt-6 text-center text-3xl font-extrabold font-roboto">
               Inicia sesion con tu cuenta
             </h2>
           </div>
@@ -96,7 +95,7 @@ export default function LogInPage() {
                   id="password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
-                  contentAfter={<MicButton />}                  
+                  contentAfter={<MicButton />}
                   autoComplete="current-password"
                   required
                   className="w-full py-3"
@@ -109,7 +108,7 @@ export default function LogInPage() {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                
+
                 <Checkbox
                   id="remember-me"
                   label={'Recuerdame'}
@@ -118,7 +117,7 @@ export default function LogInPage() {
               </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium text-blue-200 hover:text-blue-500 font-lato ">
+                <a href="#" className="font-medium hover:text-blue-500 font-lato ">
                   ¿Olvidaste tu contraseña?
                 </a>
               </div>
@@ -127,11 +126,15 @@ export default function LogInPage() {
             <div className='flex flex-col justify-center items-end'>
               <Button
                 type="submit"
-                className="group relative w-full font-openSans flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="w-full font-openSans flex justify-center"
               >
                 Ingresar
               </Button>
-              <p className='mt-3 font-lato'>No tienes cuenta? <Link to="/signup" className='font-medium text-blue-200 hover:text-blue-500 ml-1'>Create una</Link></p>
+
+            </div>
+            <div className='flex justify-between items-center'>
+              <Link to="/" className='font-medium hover:text-blue-500 ml-1'>Volver</Link>
+              <p className='mt-3 font-lato'>No tienes cuenta? <Link to="/signup" className='font-medium hover:text-blue-500 ml-1'>Create una</Link></p>
             </div>
           </form>
         </div>

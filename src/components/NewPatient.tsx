@@ -336,8 +336,6 @@ export default function NewPatient() {
                     <InputFieldWithIcon label='Doctor: ' id='doctor' placeholder='Nombre del doctor' value={formData.doctor} handleDatachange={(e) => setFormData({ ...formData, doctor: e.target.value })} icon={<ClipboardCheckmarkRegular />} />
                 </div>
             </div>
-
-
             <div className='flex justify-center space-y-3 mx-2'>
                 <div className='grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 grid-cols-1 font-semibold gap-x-4 gap-y-2 mb-6'>
                     <Divider className='col-span-full' appearance='strong' ><span className='text-xl font-roboto'>Datos personales</span></Divider>

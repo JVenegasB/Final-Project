@@ -30,7 +30,7 @@ const router = createBrowserRouter([
     element:
       <MainPage />
   },{
-    path: '/companySetup',
+    path: '/companySetup/:userName',
     element: 
       <UserCompanySetup />
   }

@@ -111,7 +111,7 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent }: 
                 </Button>
             </div>
             <div className="w-full">
-                <h1 className="font-roboto text-2xl mt-5">Crear historia para <span className="font-bold">{patientData?.personalData.name} - {patientData?.personalData.identification}</span></h1>
+                <h1 className="font-roboto text-2xl mt-5">Crear evolucion para <span className="font-bold">{patientData?.personalData.name} - {patientData?.personalData.identification}</span></h1>
             </div>
             <PatientHistory open={openDialog} setOpen={setOpenDialog} selectedPatient={patientData} />
 

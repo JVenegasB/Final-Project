@@ -1,24 +1,130 @@
 import { useEffect, useState } from 'react';
 import PatientsPage from './PatientsPage.tsx'
-import { useUserContext } from '../context/userContext';
 import { useThemeContext } from '../context/themeContext.ts';
 import { PersonCircle28Regular, Home28Filled, Person28Filled, Settings28Filled, Navigation20Filled } from '@fluentui/react-icons';
 import { Button, Menu, MenuItem, MenuList, MenuPopover, MenuTrigger } from '@fluentui/react-components';
 import { client } from '../supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { Session } from '@supabase/supabase-js';
+import SettingsComponent from './SettingsComponent.tsx';
+import MainElementPage from './MainElementPage.tsx';
+
+interface LoggedUserType {
+    user_id: string;
+    email: string;
+    name: string;
+    phone: string;
+    role: string;
+}
+interface ClinicType {
+    id: number;
+    name: string;
+    unique_code: string;
+    address: string;
+    description: string;
+    phone: string;
+}
+interface JoinRequestType {
+    id: number;
+    user_id: string;
+    clinic_id: number;
+    status: string;
+    requested_date: string;
+    clinic: clinic
+}
+interface clinic {
+    name: string
+}
 export default function Header() {
     const navigate = useNavigate();
+    const [loggedUser, setLoggedUser] = useState<LoggedUserType>();
+    const [clinic, setClinic] = useState<ClinicType>();
+    const [isClinicMember, setIsClinicMember] = useState<boolean | null>(null);
+    const [userJoinRequests, setUserJoinRequests] = useState<JoinRequestType[]>([]);
+
+    const fetchClinicUserData = async (session: Session) => {
+        const { data: clinic_user, error } = await client.from('clinic_users').select('*').eq('user_id', session?.user.id).single();
+        if (error) {
+            console.error('Error', error);
+            console.log('User does not belong to any company yet');
+            const { data: user, error: userError } = await client.from('users').select('*').eq('user_id', session.user.id).single();
+            if (userError) {
+                console.error('Error fetching user data', userError);
+            } else {
+                setLoggedUser({
+                    user_id: user.user_id,
+                    email: user.email,
+                    name: user.name,
+                    phone: user.phone,
+                    role: ''
+                });
+            }
+
+            setIsClinicMember(false);
+        } else {
+            fetchClinicUserCredentials(clinic_user.clinic_id, session?.user.id, clinic_user.role);
+        }
+    }
+
+
+    const fetchClinicUserCredentials = async (clinic_id: number, user_id: string, role: string) => {
+        const { data: clinic, error: clinicError } = await client.from('clinic').select('*').eq('id', clinic_id).single();
+        const { data: user, error: userError } = await client.from('users').select('*').eq('user_id', user_id).single();
+        if (clinicError || userError) {
+            console.error('error here', userError, clinicError);
+        } else {
+            setIsClinicMember(true);
+            setClinic(clinic);
+            setLoggedUser({
+                user_id: user.user_id,
+                email: user.email,
+                name: user.name,
+                phone: user.phone,
+                role: role
+            });
+        }
+    }
+
+    const fetchUserJoinRequests = async () => {
+
+        const { data, error } = await client.from('join_requests').select(`
+            id, 
+            user_id,
+            clinic_id, 
+            status,
+            requested_date,
+            clinic!inner ( name )
+          `).eq('user_id', loggedUser?.user_id) as { data: JoinRequestType[] | null, error: unknown };;
+        if (error) {
+            console.error('Error fetching join requests', error)
+        } else {
+            if (data) {
+                const formattedData = data.map((request) => ({
+                    ...request,
+                    requested_date: request.requested_date.toString().split('T')[0]
+                }));
+                setUserJoinRequests(formattedData);
+            }
+        }
+    }
+    const [userSession,setUserSession] = useState<Session>();
     useEffect(() => {
         client.auth.onAuthStateChange((_event, session) => {
             if (!session) {
                 navigate('/login');
             } else {
-                console.log('User logged in', session);
+                setUserSession(session);
+                fetchClinicUserData(session);
             }
         })
     }, []);
-    const [loggedUser,] = useUserContext();
-    const { isDarkMode, setIsDarkMode } = useThemeContext();
+    useEffect(() => {
+        if (!isClinicMember) {
+            console.log('Going to detch join request with this data: ', loggedUser?.user_id)
+            fetchUserJoinRequests();
+        }
+    }, [isClinicMember])
+    const { isDarkMode, } = useThemeContext();
 
     const [activeTab, setActiveTab] = useState('mainButton');
 
@@ -29,51 +135,42 @@ export default function Header() {
     };
     const renderTabContent = () => {
         switch (activeTab) {
-            case 'default':
-                return (
-                    <div className='w-full p-5'>
-                        <p>Bienvenido {loggedUser?.name}</p>
-                        <p>Correo: {loggedUser?.email}</p>
-                        <h1>Coo</h1>
-                    </div>
-                );
+
             case 'pacientesElement':
                 return (
-                    <PatientsPage/>
+                    <PatientsPage />
                 );
             case 'settingsElement':
                 return (
-                    <div className='w-full p-5'>
-                        <p>Configuraciones</p>
-                        <h2 className='my-3 font-roboto text-2xl'>Tema</h2>
-                        <Button onClick={() => setIsDarkMode(!isDarkMode)}>Cambiar a {isDarkMode ? " claro" : "oscuro"}</Button>
-                    </div>
+                    <SettingsComponent company_id={clinic?.id} isClinicMember={isClinicMember} userRole={loggedUser?.role} />
                 );
             case 'mainElement':
             default:
                 return (
-                    <div className='p-5'>
-                        <p>Bienvenido {loggedUser?.name}</p>
-                        <p>Correo: {loggedUser?.email}</p>
-                        <h1>Coo</h1>
-                    </div>
+                    <MainElementPage isClinicMember={isClinicMember} clinicName={clinic?.name} userJoinRequests={userJoinRequests} userSession={userSession ?? null} userName={loggedUser?.name}/>
                 );
         }
     };
     return (
         <div className="flex flex-col max-h-screen">
             <div className={`${isDarkMode ? "bg-mainBgDark" : "bg-white"} lg:flex flex-row justify-between px-5 hidden`}>
-                <div className='flex flex-row justify-center items-center w-44 h-20 m-2 bg-red-400'>
-                    Company Name
+                <div className='flex flex-row justify-center items-center w-44 h-20 m-2'>
+                    {isClinicMember ?
+                        <h1 className='text-3xl font-bold'>
+                            CompanyName
+                        </h1> : <h1 className='text-3xl font-bold'>
+                            Bienvenido
+                        </h1>
+                    }
                 </div>
                 <div className='flex flex-row items-center m-2'>
-                    <div className='font-roboto italic text-gray-400'>Codigo: {loggedUser?.code}</div>
+                    {loggedUser?.role === 'admin' && <div className='font-roboto italic text-gray-400'>Codigo: {clinic?.unique_code}</div>}
                     <div className='border-2 mx-2 p-2 font-roboto'>
                         <Menu>
                             <MenuTrigger disableButtonEnhancement>
                                 <Button appearance='transparent'>
                                     <PersonCircle28Regular className='mr-2' />
-                                    {loggedUser?.nickName}
+                                    {loggedUser?.name}
 
                                 </Button>
                             </MenuTrigger>
@@ -98,10 +195,11 @@ export default function Header() {
                             <Home28Filled className="mr-2 text-white" />
                             <p className=' text-white text-lg'>Inicio</p>
                         </button>
-                        <button onClick={() => setActiveTab('pacientesElement')} className="flex flex-grow items-center px-3 py-5 hover:bg-blue-600 w-full border-b-2 border-white/50">
+                        {isClinicMember && <button onClick={() => setActiveTab('pacientesElement')} className="flex flex-grow items-center px-3 py-5 hover:bg-blue-600 w-full border-b-2 border-white/50">
                             <Person28Filled className="mr-2 text-white" />
                             <p className=' text-white text-lg'>Pacientes</p>
-                        </button>
+                        </button>}
+
                         <button onClick={() => setActiveTab('settingsElement')} className="flex flex-grow items-center px-3 py-5 hover:bg-blue-600 w-full ">
                             <Settings28Filled className="mr-2 text-white" />
                             <p className=' text-white text-lg'>Configuraciones</p>

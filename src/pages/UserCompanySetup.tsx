@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useThemeContext } from '../context/themeContext.ts';
 import { client } from '../supabase/client';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,useParams } from 'react-router-dom';
 import {
     Button,
     Breadcrumb,
@@ -11,9 +11,12 @@ import {
 } from '@fluentui/react-components';
 import InputFieldWithIcon from '../components/InputFieldWithIcon.tsx';
 import TextFieldWithIcon from '../components/TextFieldWithIcon.tsx';
+import { Session } from '@supabase/supabase-js';
 
 export default function UserCompanySetup() {
     const navigate = useNavigate();
+    const [userSession, setUserSession] = useState<Session | null>(null);
+    const { userName } = useParams();
     useEffect(() => {
         client.auth.onAuthStateChange((_event, session) => {
             if (!session) {
@@ -21,6 +24,7 @@ export default function UserCompanySetup() {
                 navigate('/login');
             } else {
                 console.log('User logged in', session);
+                setUserSession(session);
             }
         })
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -45,11 +49,58 @@ export default function UserCompanySetup() {
     const { isDarkMode } = useThemeContext();
     const [isCreateCompany, setIsCreateCompany] = useState(true);
 
-    const createConsultory = () => {
-        console.log('creating consultory')
+    const createConsultory = async () => {
+        const { data:clinic , error } = await client.from('clinic').insert([
+            {
+                name: data.consultoryName,
+                phone: data.phoneNumber,
+                address: data.address,
+                description: data.description
+            }
+        ]).select('id').single()
+        if (clinic) {
+            console.log('Consultory created')
+            const { error } = await client.from('clinic_users').insert([
+                {
+                    user_id: userSession?.user.id,
+                    clinic_id: clinic.id,
+                    role: 'admin'
+                }
+            ])
+            if (error) {
+                console.log('Error creating consultory user', error)
+            }else{
+                console.log('Consultory user created')
+                navigate('/mainPage')
+            }
+        }
+        if (error) {
+            console.log('Error creating consultory', error)
+        } 
     }
-    const sendJoinRequest = () => {
-        console.log('Attempting to join with code ',joinRequestCode)
+    const sendJoinRequest = async () => {
+        //validate code exists
+        const { data:clinic, error } = await client.from('clinic').select('*').eq('unique_code',joinRequestCode).single()
+        if (clinic) {
+            console.log('Clinic found')
+            const { data,error } = await client.from('join_requests').insert([
+                {
+                    user_id: userSession?.user.id,
+                    clinic_id: clinic.id,
+                    user_name: userName
+                }
+            ])
+            if (error) {
+                console.log('Error creating join request', error)
+            }else{
+                console.log('Join request created')
+                console.log('Data from request: ',data)
+                navigate('/')
+            }
+        }
+        if(error){
+            console.error('Error finding clinic', error)
+        }
     }
     const showOptionSelected = () => {
         if (isCreateCompany) {
@@ -68,6 +119,7 @@ export default function UserCompanySetup() {
             return (
                 <div className='flex flex-col'>
                     <div className='flex flex-col mb-5'>
+                        <p>{userName}</p>
                         <InfoLabel info={
                             <>
                                 <p>Solicite al administrador de la empresa el codigo de identificacion.</p>
