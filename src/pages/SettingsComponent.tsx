@@ -3,11 +3,15 @@ import { useThemeContext } from "../context/themeContext";
 import { client } from '../supabase/client'
 import { useEffect, useState } from "react";
 import { Table } from '@fluentui/react-components'
+import UserDataChangeComponent from "../components/UserDataChangeComponent";
+import { Session } from '@supabase/supabase-js';
+
 
 interface SettingsComponentProps {
   company_id?: number;
   isClinicMember?: boolean | null;
   userRole?: string;
+  userSession?: Session | null;
 }
 
 interface JoinRequestType {
@@ -21,9 +25,10 @@ interface JoinRequestType {
 }
 
 
-export default function SettingsComponent({ company_id, isClinicMember, userRole }: SettingsComponentProps) {
+export default function SettingsComponent({ company_id, isClinicMember, userRole, userSession }: SettingsComponentProps) {
   const { isDarkMode, setIsDarkMode } = useThemeContext();
   const [clinicRequestList, setClinicRequestList] = useState<JoinRequestType[]>([])
+
   const fetchJoinRequests = async () => {
     const { data: clinic, error } = await client.from('join_requests').select('*').eq('clinic_id', company_id)
     if (error) {
@@ -79,30 +84,30 @@ export default function SettingsComponent({ company_id, isClinicMember, userRole
   }
   const handleRejectRequest = async (request_id: number) => {
 
-      const { error } = await client.from('join_requests').update({
-        status: 'rejected',
-        decision_date: new Date().toISOString()
-      }).eq('id', request_id)
-      if (error) {
-        console.error('Error updating join request: ', error)
-      } else {
-        console.log('Join request rejected')
-        fetchJoinRequests()
-      }
+    const { error } = await client.from('join_requests').update({
+      status: 'rejected',
+      decision_date: new Date().toISOString()
+    }).eq('id', request_id)
+    if (error) {
+      console.error('Error updating join request: ', error)
+    } else {
+      console.log('Join request rejected')
+      fetchJoinRequests()
+    }
   }
 
   return (
-    <div className={`h-full m-3 ${isDarkMode ? "bg-thirdBgDark" : "bg-white"}`}>
+    <div className={`h-full m-3 ${isDarkMode ? "bg-thirdBgDark" : "bg-white"} max-h-[calc(100vh-90px)] overflow-y-auto`}>
       <h1 className={`text-4xl font-bold font-roboto p-5 ${isDarkMode ? "text-white" : "text-blue-900"}`}>Configuraciones</h1>
       <div className="grid lg:grid-cols-2 grid-cols-1 ">
-        <div className={`m-3 p-3 ${isDarkMode ? "bg-secondaryBgDark" : "bg-secondaryBgLight"} rounded-md`}>
+        <div className={`m-3 p-3 ${isDarkMode ? "bg-secondaryBgDark" : "bg-secondaryBgLight"} rounded-md ${!(isClinicMember && userRole === 'admin') && 'col-span-full'}`}>
           <h2 className='my-3 font-roboto text-2xl'>Tema</h2>
           <Switch labelPosition="before" label={`${isDarkMode ? 'Modo oscuro' : 'Modo claro'}`} onChange={() => setIsDarkMode(!isDarkMode)} />
         </div>
         {(isClinicMember && userRole === 'admin') &&
           <div className={`m-3 p-3 ${isDarkMode ? "bg-secondaryBgDark" : "bg-secondaryBgLight"} rounded-md `}>
             <div className="flex flex-row justify-between">
-              <h2 className="py-2 px-1 font-roboto text-lg">Solicitud de ingreso</h2>
+              <h2 className='my-3 font-roboto text-2xl'>Solicitud de ingreso</h2>
               <Button onClick={() => fetchJoinRequests()}>Refresh</Button>
             </div>
             <div className="overflow-x-auto">
@@ -135,9 +140,9 @@ export default function SettingsComponent({ company_id, isClinicMember, userRole
 
           </div>}
         <div className={`m-3 p-3 ${isDarkMode ? "bg-secondaryBgDark" : "bg-secondaryBgLight"} rounded-md col-span-full`}>
-          Editar usuario
-          <div>
-            Formulario para editar usuario
+          <h2 className='my-3 font-roboto text-2xl'>Editar datos de usuario</h2>
+          <div >
+            <UserDataChangeComponent userSession={userSession} />
           </div>
         </div>
       </div>

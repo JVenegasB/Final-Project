@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import PatientsPage from './PatientsPage.tsx'
 import { useThemeContext } from '../context/themeContext.ts';
 import { PersonCircle28Regular, Home28Filled, Person28Filled, Settings28Filled, Navigation20Filled } from '@fluentui/react-icons';
-import { Button, Menu, MenuItem, MenuList, MenuPopover, MenuTrigger } from '@fluentui/react-components';
+import { Button, Menu, MenuItem, MenuList, MenuPopover, MenuTrigger,Spinner } from '@fluentui/react-components';
 import { client } from '../supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { Session } from '@supabase/supabase-js';
@@ -61,6 +61,8 @@ export default function Header() {
             }
 
             setIsClinicMember(false);
+            setActiveTab('mainElement');
+
         } else {
             fetchClinicUserCredentials(clinic_user.clinic_id, session?.user.id, clinic_user.role);
         }
@@ -82,11 +84,12 @@ export default function Header() {
                 phone: user.phone,
                 role: role
             });
+            setActiveTab('mainElement');
+
         }
     }
 
     const fetchUserJoinRequests = async () => {
-
         const { data, error } = await client.from('join_requests').select(`
             id, 
             user_id,
@@ -107,7 +110,7 @@ export default function Header() {
             }
         }
     }
-    const [userSession,setUserSession] = useState<Session>();
+    const [userSession, setUserSession] = useState<Session>();
     useEffect(() => {
         client.auth.onAuthStateChange((_event, session) => {
             if (!session) {
@@ -118,6 +121,7 @@ export default function Header() {
             }
         })
     }, []);
+
     useEffect(() => {
         if (!isClinicMember) {
             console.log('Going to detch join request with this data: ', loggedUser?.user_id)
@@ -126,7 +130,7 @@ export default function Header() {
     }, [isClinicMember])
     const { isDarkMode, } = useThemeContext();
 
-    const [activeTab, setActiveTab] = useState('mainButton');
+    const [activeTab, setActiveTab] = useState('');
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -142,12 +146,20 @@ export default function Header() {
                 );
             case 'settingsElement':
                 return (
-                    <SettingsComponent company_id={clinic?.id} isClinicMember={isClinicMember} userRole={loggedUser?.role} />
+                    <SettingsComponent company_id={clinic?.id} isClinicMember={isClinicMember} userRole={loggedUser?.role} userSession={userSession}/>
                 );
             case 'mainElement':
+                return (
+                    <MainElementPage isClinicMember={isClinicMember} clinicName={clinic?.name} userJoinRequests={userJoinRequests} userSession={userSession ?? null} userName={loggedUser?.name} />
+                )
             default:
                 return (
-                    <MainElementPage isClinicMember={isClinicMember} clinicName={clinic?.name} userJoinRequests={userJoinRequests} userSession={userSession ?? null} userName={loggedUser?.name}/>
+                    <div className={`h-full m-3 ${isDarkMode ? "bg-thirdBgDark" : "bg-white"} `}>
+                        <div className='flex flex-col justify-center items-center'>
+                            <h1 className='text-3xl font-bold my-10'>Cargando datos</h1>
+                            <Spinner size='extra-large'/>
+                        </div>
+                    </div>
                 );
         }
     };

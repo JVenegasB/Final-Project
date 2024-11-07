@@ -56,10 +56,8 @@ export default function MainElementPage({ isClinicMember, clinicName, userJoinRe
     return (
         <div className={`h-full m-3 ${isDarkMode ? "bg-thirdBgDark" : "bg-white"}`}>
             <div className='p-5'>
-                {isClinicMember ?
+                {!isClinicMember ?
                     <>
-                        <h1 className={`text-4xl font-bold font-roboto ${isDarkMode ? "text-white" : "text-blue-900"}`}>Bienvenido a {clinicName}</h1>
-                    </> : <>
                         <h1 className={`text-4xl font-bold font-roboto ${isDarkMode ? "text-white" : "text-blue-900"}`}>Bienvenido</h1>
                         <p>No te encuentras asociado a ningun consultorio</p>
 
@@ -100,6 +98,8 @@ export default function MainElementPage({ isClinicMember, clinicName, userJoinRe
                                 <Button onClick={sendJoinRequest}>Enviar solicitud</Button>
                             </div>
                         }
+                    </> : <>
+                    <h1 className={`text-4xl font-bold font-roboto ${isDarkMode ? "text-white" : "text-blue-900"}`}>Bienvenido a {clinicName}</h1>
                     </>
                 }
             </div>

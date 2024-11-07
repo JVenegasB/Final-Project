@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/userContext';
 import { Label, Input, Button, Checkbox } from '@fluentui/react-components';
@@ -17,11 +17,8 @@ export default function LogInPage() {
     throw new Error("LogInPage must be used within a UserContext.Provider");
   }
 
-  const [, setUserData] = userContext;
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setUserData({ name: 'Admin', email: email, id: 1, role: 'admin', nickName: 'Juan Venegas', code: 'ABC123' })
     client.auth.signInWithPassword({
       email,
       password
@@ -59,16 +56,14 @@ export default function LogInPage() {
       />
     )
   }
-  const { isDarkMode,  } = useThemeContext();
+  const { isDarkMode, } = useThemeContext();
   return (
     <div className="flex h-screen">
-      <div className={`w-full flex items-center justify-center bg-gradient-to-br ${isDarkMode ? 'from-black to-gray-500':'from-blue-700 to-blue-100"'}`}>
-        <div className={`w-full max-w-xl space-y-8 p-10 ${isDarkMode ? 'bg-[#242424]/80':'bg-white/80'} rounded-lg`}>
-          <div>
+      <div className={`w-full flex items-center justify-center bg-gradient-to-br ${isDarkMode ? 'from-black to-gray-500' : 'from-blue-700 to-blue-100"'}`}>
+        <div className={`w-full max-w-xl space-y-8 p-10 ${isDarkMode ? 'bg-[#242424]/80' : 'bg-white/80'} rounded-lg`}>
             <h2 className="mt-6 text-center text-3xl font-extrabold font-roboto">
               Inicia sesion con tu cuenta
             </h2>
-          </div>
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-4 rounded-md shadow-sm">
               <div>
@@ -117,9 +112,7 @@ export default function LogInPage() {
               </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium hover:text-blue-500 font-lato ">
-                  ¿Olvidaste tu contraseña?
-                </a>
+                <Link to="/recoverpassword" className='font-medium hover:text-blue-500 ml-1'>¿Olvidaste tu contraseña?</Link>
               </div>
             </div>
 

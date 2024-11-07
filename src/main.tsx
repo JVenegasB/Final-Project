@@ -13,6 +13,7 @@ import { UserContext } from './context/userContext.ts'
 import { ThemeContext } from './context/themeContext.ts'
 import { user } from './types/types.ts'
 import { client } from './supabase/client.ts'
+import PasswordResetPage from './pages/PasswordResetPage.tsx'
 
 const router = createBrowserRouter([
   {
@@ -29,6 +30,10 @@ const router = createBrowserRouter([
     path: '/mainPage',
     element:
       <MainPage />
+  },{
+    path: '/recoverpassword',
+    element:
+      <PasswordResetPage />
   },{
     path: '/companySetup/:userName',
     element: 

@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Checkbox, Label, Divider, Button, InfoLabel } from "@fluentui/react-components";
-import { PersonRegular, BriefcaseRegular, PersonChatRegular, SlideRecordRegular, ClockRegular, ClipboardCheckmarkRegular,SaveArrowRight20Regular,Save20Regular } from '@fluentui/react-icons';
+import { PersonRegular, BriefcaseRegular, PersonChatRegular, SlideRecordRegular, ClockRegular, ClipboardCheckmarkRegular, SaveArrowRight20Regular, Save20Regular } from '@fluentui/react-icons';
 import { useUserContext } from '../context/userContext';
 import InputFieldWithIcon from './InputFieldWithIcon'
 import TextFieldWithIcon from './TextFieldWithIcon'
 import ConfirmationDialogs from './ConfirmationDialogs'
+import InputFieldCie10 from './InputFieldCie10'
+
 
 export default function NewPatient() {
     const [loggedUser,] = useUserContext();
@@ -77,7 +79,7 @@ export default function NewPatient() {
             IMC: 0,
             physicalExam: '',
         },
-        diagnostic: [{ description: '' }],
+        diagnostic: [{ description: '', code: '' }],
         treatment: [{ description: '' }],
         doctor: '',
     });
@@ -107,6 +109,7 @@ export default function NewPatient() {
     const [isComplete, setIsComplete] = useState(false);
     const [missingFields, setMissingFields] = useState<string[]>([]);
     useEffect(() => {
+        console.log(formData.diagnostic)
         const hasChanged = () => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { firstSession, lastSession, ...personalData } = formData.personalData;
@@ -278,7 +281,7 @@ export default function NewPatient() {
             setList([...list, inputValue]);
             setFormData((prevData) => ({
                 ...prevData,
-                diagnostic: [...prevData.diagnostic, { description: inputValue }]
+                diagnostic: [...prevData.diagnostic, { description: inputValue, code: inputValue }]
             }));
             setInputValue('');
         }
@@ -319,8 +322,8 @@ export default function NewPatient() {
         <div className='flex flex-col h-full w-full overflow-y-auto'>
             <div className='flex md:flex-row flex-col justify-between md:mx-5 mx-2'>
                 <div>
-                    <ConfirmationDialogs props={{buttonDescription:'Terminar mas tarde',description:'¿Estás seguro de que deseas guardar la historia y continuar más tarde? Esto solo se puede hacer una vez',mainButtonText:'Enviar para continuar mas tarde',mainFunction:sendLater,secondaryButtonText:'Cancelar',title:'Confirmacion para continuar mas tarde',valid:isChanged,icon:(<SaveArrowRight20Regular/>)}} />
-                    <ConfirmationDialogs props={{buttonDescription:'Guardar',description:'Esta seguro que desea enviar la historia? Una vez enviada no se puede deshacer ni editar',mainButtonText:'Enviar',mainFunction:sendData,secondaryButtonText:'Cancelar',title:'Confirmacion de envio de Evolucion',valid:isComplete,icon:(<Save20Regular/>)}} />
+                    <ConfirmationDialogs props={{ buttonDescription: 'Terminar mas tarde', description: '¿Estás seguro de que deseas guardar la historia y continuar más tarde? Esto solo se puede hacer una vez', mainButtonText: 'Enviar para continuar mas tarde', mainFunction: sendLater, secondaryButtonText: 'Cancelar', title: 'Confirmacion para continuar mas tarde', valid: isChanged, icon: (<SaveArrowRight20Regular />) }} />
+                    <ConfirmationDialogs props={{ buttonDescription: 'Guardar', description: 'Esta seguro que desea enviar la historia? Una vez enviada no se puede deshacer ni editar', mainButtonText: 'Enviar', mainFunction: sendData, secondaryButtonText: 'Cancelar', title: 'Confirmacion de envio de Evolucion', valid: isComplete, icon: (<Save20Regular />) }} />
                     <InfoLabel info=
                         {
                             <>
@@ -428,15 +431,32 @@ export default function NewPatient() {
                                 <div className='col-span-2'>
                                     {list.map((_x, i) => (
                                         <div key={i} className='flex flex-col space-y-1'>
-                                            <InputFieldWithIcon id='diagnostic' placeholder='Ingrese el diagnostico...' value={formData.diagnostic[i].description} handleDatachange={(e) => {
-                                                const newDiagnostic = formData.diagnostic.map((item, index) => {
-                                                    if (i === index) {
-                                                        return { description: e.target.value }
+                                            <InputFieldCie10
+                                                id='diagnostic'
+                                                placeholder='Ingrese el diagnostico...'
+                                                value={formData.diagnostic[i].description}
+                                                handleDatachange={(e) => {
+                                                    const newDiagnostic = formData.diagnostic.map((item, index) => {
+                                                        if (i === index) {
+                                                            return { ...item, description: e.target.value }
+                                                        }
+                                                        return item;
+                                                    });
+                                                    setFormData({ ...formData, diagnostic: newDiagnostic });
+                                                }}
+                                                handleCie10Change={
+                                                    (e) => {
+                                                        const newDiagnostic = formData.diagnostic.map((item, index) => {
+                                                            if (i === index) {
+                                                                return { ...item, code: e.target.value }
+                                                            }
+                                                            return item;
+                                                        });
+                                                        setFormData({ ...formData, diagnostic: newDiagnostic });
                                                     }
-                                                    return item;
-                                                });
-                                                setFormData({ ...formData, diagnostic: newDiagnostic });
-                                            }} />
+                                                }
+                                                cieValue={formData.diagnostic[i].code}
+                                            />
                                         </div>
                                     ))}
                                 </div>

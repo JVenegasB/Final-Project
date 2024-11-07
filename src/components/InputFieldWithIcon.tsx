@@ -4,7 +4,7 @@ import { Label, Input } from '@fluentui/react-components';
 interface InputFieldWithIconProps {
     label?: string;
     id: string;
-    type?: "number" | "text" | 'date'; 
+    type?: "number" | "text" | 'date' | 'email'; 
     placeholder:string;
     handleDatachange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
     icon?: JSX.Element;
