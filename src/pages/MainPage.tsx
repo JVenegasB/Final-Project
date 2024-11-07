@@ -2,28 +2,16 @@ import { useEffect, useState } from 'react';
 import PatientsPage from './PatientsPage.tsx'
 import { useThemeContext } from '../context/themeContext.ts';
 import { PersonCircle28Regular, Home28Filled, Person28Filled, Settings28Filled, Navigation20Filled } from '@fluentui/react-icons';
-import { Button, Menu, MenuItem, MenuList, MenuPopover, MenuTrigger,Spinner } from '@fluentui/react-components';
+import { Button, Menu, MenuItem, MenuList, MenuPopover, MenuTrigger, Spinner } from '@fluentui/react-components';
 import { client } from '../supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { Session } from '@supabase/supabase-js';
 import SettingsComponent from './SettingsComponent.tsx';
 import MainElementPage from './MainElementPage.tsx';
+import { useClinicContext } from '../context/clinicContext.ts';
+import { useUserContext }   from '../context/userContext.ts';
 
-interface LoggedUserType {
-    user_id: string;
-    email: string;
-    name: string;
-    phone: string;
-    role: string;
-}
-interface ClinicType {
-    id: number;
-    name: string;
-    unique_code: string;
-    address: string;
-    description: string;
-    phone: string;
-}
+
 interface JoinRequestType {
     id: number;
     user_id: string;
@@ -37,8 +25,8 @@ interface clinic {
 }
 export default function Header() {
     const navigate = useNavigate();
-    const [loggedUser, setLoggedUser] = useState<LoggedUserType>();
-    const [clinic, setClinic] = useState<ClinicType>();
+    const [loggedUser, setLoggedUser] = useUserContext();
+    const [clinic, setClinic] = useClinicContext();
     const [isClinicMember, setIsClinicMember] = useState<boolean | null>(null);
     const [userJoinRequests, setUserJoinRequests] = useState<JoinRequestType[]>([]);
 
@@ -146,30 +134,36 @@ export default function Header() {
                 );
             case 'settingsElement':
                 return (
-                    <SettingsComponent company_id={clinic?.id} isClinicMember={isClinicMember} userRole={loggedUser?.role} userSession={userSession}/>
+
+                    <SettingsComponent isClinicMember={isClinicMember}/>
+
                 );
             case 'mainElement':
                 return (
-                    <MainElementPage isClinicMember={isClinicMember} clinicName={clinic?.name} userJoinRequests={userJoinRequests} userSession={userSession ?? null} userName={loggedUser?.name} />
+                    <MainElementPage isClinicMember={isClinicMember} userJoinRequests={userJoinRequests} userSession={userSession ?? null} userName={loggedUser?.name} />
                 )
             default:
                 return (
                     <div className={`h-full m-3 ${isDarkMode ? "bg-thirdBgDark" : "bg-white"} `}>
                         <div className='flex flex-col justify-center items-center'>
                             <h1 className='text-3xl font-bold my-10'>Cargando datos</h1>
-                            <Spinner size='extra-large'/>
+                            <Spinner size='extra-large' />
                         </div>
                     </div>
                 );
         }
     };
+    const signOut = async () => {
+        setLoggedUser(null);
+        await client.auth.signOut();
+    }
     return (
         <div className="flex flex-col max-h-screen">
             <div className={`${isDarkMode ? "bg-mainBgDark" : "bg-white"} lg:flex flex-row justify-between px-5 hidden`}>
                 <div className='flex flex-row justify-center items-center w-44 h-20 m-2'>
                     {isClinicMember ?
                         <h1 className='text-3xl font-bold'>
-                            CompanyName
+                            {clinic?.name}
                         </h1> : <h1 className='text-3xl font-bold'>
                             Bienvenido
                         </h1>
@@ -188,7 +182,7 @@ export default function Header() {
                             </MenuTrigger>
                             <MenuPopover>
                                 <MenuList>
-                                    <MenuItem><Button onClick={() => client.auth.signOut()} appearance='transparent'>Cerrar sesion</Button></MenuItem>
+                                    <MenuItem><Button onClick={() => signOut()} appearance='transparent'>Cerrar sesion</Button></MenuItem>
                                 </MenuList>
                             </MenuPopover>
                         </Menu>

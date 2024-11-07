@@ -1,6 +1,5 @@
-import { useContext, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
-import { UserContext } from '../context/userContext';
 import { Label, Input, Button, Checkbox } from '@fluentui/react-components';
 import { client } from '../supabase/client';
 import { EyeOffRegular, EyeRegular } from '@fluentui/react-icons';
@@ -11,11 +10,6 @@ export default function LogInPage() {
   const [password, setPassword] = useState('')
   const navigate = useNavigate()
 
-  const userContext = useContext(UserContext);
-
-  if (!userContext) {
-    throw new Error("LogInPage must be used within a UserContext.Provider");
-  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

@@ -9,11 +9,11 @@ import MainPage from './pages/MainPage.tsx'
 import UserCompanySetup from './pages/UserCompanySetup.tsx'
 import { FluentProvider, webLightTheme, webDarkTheme } from '@fluentui/react-components'
 import './index.css'
-import { UserContext } from './context/userContext.ts'
 import { ThemeContext } from './context/themeContext.ts'
-import { user } from './types/types.ts'
 import { client } from './supabase/client.ts'
 import PasswordResetPage from './pages/PasswordResetPage.tsx'
+import { ClinicContext } from './context/clinicContext.ts'
+import { UserContext } from './context/userContext.ts'
 
 const router = createBrowserRouter([
   {
@@ -30,23 +30,37 @@ const router = createBrowserRouter([
     path: '/mainPage',
     element:
       <MainPage />
-  },{
+  }, {
     path: '/recoverpassword',
     element:
       <PasswordResetPage />
-  },{
+  }, {
     path: '/companySetup/:userName',
-    element: 
+    element:
       <UserCompanySetup />
   }
 ]);
-
+interface ClinicType {
+  id: number;
+  name: string;
+  unique_code: string;
+  address: string;
+  description: string;
+  phone: string;
+}
+type LoggedUserType = {
+  user_id: string;
+  email: string;
+  name: string;
+  phone: string;
+  role: string;
+}
 
 const Root = () => {
 
-  const [userData, setUserData] = useState<user | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(window.matchMedia('(prefers-color-scheme: dark)').matches);
-
+  const [clinic, setClinicData] = useState<ClinicType | null>(null);
+  const [loggedUser, setLoggedUserData] = useState<LoggedUserType | null>(null);
   useEffect(() => {
     client.auth.onAuthStateChange((_event, session) => {
       if (session) {
@@ -69,13 +83,15 @@ const Root = () => {
   }, []);
 
   return (
-    <UserContext.Provider value={[userData, setUserData]}>
-      <ThemeContext.Provider value={{ isDarkMode, setIsDarkMode }}>
-        <FluentProvider theme={isDarkMode ? webDarkTheme : webLightTheme}>
-          <RouterProvider router={router} />
-        </FluentProvider>
-      </ThemeContext.Provider>
-    </UserContext.Provider>
+    <ClinicContext.Provider value={[clinic, setClinicData]} >
+      <UserContext.Provider value={[loggedUser, setLoggedUserData]}>
+        <ThemeContext.Provider value={{ isDarkMode, setIsDarkMode }}>
+          <FluentProvider theme={isDarkMode ? webDarkTheme : webLightTheme}>
+            <RouterProvider router={router} />
+          </FluentProvider>
+        </ThemeContext.Provider>
+      </UserContext.Provider>
+    </ClinicContext.Provider>
   );
 };
 

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Checkbox, Label, Divider, Button, InfoLabel } from "@fluentui/react-components";
 import { PersonRegular, BriefcaseRegular, PersonChatRegular, SlideRecordRegular, ClockRegular, ClipboardCheckmarkRegular, SaveArrowRight20Regular, Save20Regular } from '@fluentui/react-icons';
-import { useUserContext } from '../context/userContext';
 import InputFieldWithIcon from './InputFieldWithIcon'
 import TextFieldWithIcon from './TextFieldWithIcon'
 import ConfirmationDialogs from './ConfirmationDialogs'
@@ -9,7 +8,6 @@ import InputFieldCie10 from './InputFieldCie10'
 
 
 export default function NewPatient() {
-    const [loggedUser,] = useUserContext();
     const [formData, setFormData] = useState({
         personalData: {
             firstSession: '',
@@ -259,14 +257,33 @@ export default function NewPatient() {
             }));
         }
     }, [formData.physicalExam.size, formData.physicalExam.weight]);
-    useEffect(() => {
-        if (loggedUser) {
-            setFormData((prevData) => ({
-                ...prevData,
-                doctor: loggedUser.nickName,
-            }));
-        }
-    }, [loggedUser]);
+
+
+
+
+
+
+
+
+
+
+
+//================================================================
+
+
+
+
+
+
+
+    // useEffect(() => {
+    //     if (loggedUser) {
+    //         setFormData((prevData) => ({
+    //             ...prevData,
+    //             doctor: loggedUser.nickName,
+    //         }));
+    //     }
+    // }, [loggedUser]);
 
     // PASAR EDAD A NUMERO AL ENVIAR A BASE DE DATOS
 

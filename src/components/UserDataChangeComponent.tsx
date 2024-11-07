@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
 import { client } from '../supabase/client'
 import { Button, Input, Label, Divider } from '@fluentui/react-components'
-import { Session } from '@supabase/supabase-js';
 import { EyeOffRegular, EyeRegular } from '@fluentui/react-icons';
-interface UserDataChangeComponentProps {
-    userSession?: Session | null;
-}
+import { useUserContext }   from '../context/userContext.ts';
 
-export default function UserDataChangeComponent({ userSession }: UserDataChangeComponentProps) {
+
+export default function UserDataChangeComponent() {
+    const [user,setUser] = useUserContext();
+    
     const [dataToChange, setDataToChange] = useState({
         newEmail: '',
         name: '',
@@ -15,22 +15,28 @@ export default function UserDataChangeComponent({ userSession }: UserDataChangeC
     })
 
     const fetchUserData = async () => {
-        const { data, error } = await client.from('users').select('*').eq('user_id', userSession?.user.id).single()
+        const { data, error } = await client.from('users').select('*').eq('user_id', user?.user_id).single()
         if (error) {
             console.error('Error fetching data: ', error)
         } else {
             console.log('Data fetched: ', data)
-            setDataToChange({
-                newEmail: data.email,
+            setUser({
+                user_id: data.user_id,
+                email: data.email,
                 name: data.name,
-                phoneNumber: data.phone
+                phone: data.phone,
+                role: data.role
             })
         }
     }
-
     useEffect(() => {
-        fetchUserData()
-    }, [])
+        setDataToChange({
+            newEmail: user?.email || '',
+            name: user?.name || '',
+            phoneNumber: user?.phone || ''
+        })
+    }, [user])
+
 
     const handleUserDataChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -49,7 +55,7 @@ export default function UserDataChangeComponent({ userSession }: UserDataChangeC
         const { data, error } = await client
             .from('users')
             .update(filteredData)
-            .eq('user_id', userSession?.user.id);
+            .eq('user_id', user?.user_id);
         if (error) {
             console.error('Error updating data: ', error)
         } else {

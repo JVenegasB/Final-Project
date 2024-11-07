@@ -4,10 +4,10 @@ import { useState } from "react";
 import InputFieldWithIcon from "../components/InputFieldWithIcon";
 import { client } from "../supabase/client";
 import { Session } from "@supabase/supabase-js";
+import { useClinicContext } from '../context/clinicContext.ts';
 
 interface MainElementPageType {
     isClinicMember: boolean | null;
-    clinicName?: string
     userJoinRequests?: JoinRequestType[]
     userSession: Session | null
     userName?: string
@@ -26,7 +26,8 @@ interface clinic {
 }
 
 
-export default function MainElementPage({ isClinicMember, clinicName, userJoinRequests, userSession, userName }: MainElementPageType) {
+export default function MainElementPage({ isClinicMember,  userJoinRequests, userSession, userName }: MainElementPageType) {
+    const [clinicName] = useClinicContext();
     const { isDarkMode, } = useThemeContext();
     const [joinRequestCode, setJoinRequestCode] = useState('')
 
@@ -99,7 +100,7 @@ export default function MainElementPage({ isClinicMember, clinicName, userJoinRe
                             </div>
                         }
                     </> : <>
-                    <h1 className={`text-4xl font-bold font-roboto ${isDarkMode ? "text-white" : "text-blue-900"}`}>Bienvenido a {clinicName}</h1>
+                    <h1 className={`text-4xl font-bold font-roboto ${isDarkMode ? "text-white" : "text-blue-900"}`}>Bienvenido a {clinicName?.name}</h1>
                     </>
                 }
             </div>
