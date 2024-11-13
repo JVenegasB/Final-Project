@@ -9,7 +9,7 @@ type ClinicType = {
 }
 type ClinicContextType =[
     clinic: ClinicType | null,
-    setClinicData: (clinic: ClinicType) => void
+    setClinicData: (clinic: ClinicType | null) => void
 ]
 
 export const ClinicContext = createContext<ClinicContextType | undefined>(undefined);

@@ -13,7 +13,7 @@ export default function PDFComplete({ patientData}: PDFComplete) {
                 {patientData ? (
                     <>  
                         <Text>Historia clinica</Text>
-                        <Text>Nombre del paciente: {patientData?.personalData.name}</Text>
+                        <Text>Nombre del paciente: {patientData?.name}</Text>
                     </>
                 ) : (
                     <Text>No patient data available</Text>

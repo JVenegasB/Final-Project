@@ -13,7 +13,7 @@ export default function PDFSummary({ patientData}: PDFSummaryProps) {
                 {patientData ? (
                     <>
                         <Text>Resumen de historia</Text>
-                        <Text>Nombre del paciente: {patientData?.personalData.name}</Text>
+                        <Text>Nombre del paciente: {patientData?.name}</Text>
                     </>
                 ) : (
                     <Text>No patient data available</Text>

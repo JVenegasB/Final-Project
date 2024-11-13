@@ -33,13 +33,13 @@ export default function ExportPDF({ patientData, exportType, setAddEvolutionComp
                 </Button>
                 <PDFDownloadLink
                     document={patientData ? <PDFSummary patientData={patientData} /> : null}
-                    fileName={`${patientData?.personalData.name} Historia clinica ${exportType}.pdf`}
+                    fileName={`${patientData?.name} Historia clinica ${exportType}.pdf`}
                 >
                     {({ loading }) => <DownloadButton loading={loading} />}
                 </PDFDownloadLink>
             </div>
             <div className='my-5'>
-                <span className="font-roboto text-2xl mt-5">Exportar historia de {patientData?.personalData.name} a PDF ({exportType})</span>
+                <span className="font-roboto text-2xl mt-5">Exportar historia de {patientData?.name} a PDF ({exportType})</span>
             </div>
             <div className='flex items-center justify-center w-full'>
                 {exportType === "resumen" ? (

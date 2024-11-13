@@ -11,7 +11,6 @@ import MainElementPage from './MainElementPage.tsx';
 import { useClinicContext } from '../context/clinicContext.ts';
 import { useUserContext }   from '../context/userContext.ts';
 
-
 interface JoinRequestType {
     id: number;
     user_id: string;
@@ -155,6 +154,7 @@ export default function Header() {
     };
     const signOut = async () => {
         setLoggedUser(null);
+        setClinic(null);
         await client.auth.signOut();
     }
     return (

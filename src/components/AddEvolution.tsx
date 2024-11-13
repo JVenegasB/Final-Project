@@ -1,35 +1,33 @@
 import { Button, Input, Label, Textarea } from "@fluentui/react-components";
 import { useEffect, useState } from "react";
-import { ArrowLeft20Regular,Save20Regular,SaveArrowRight20Regular,ContentView20Regular,AddCircle20Regular } from '@fluentui/react-icons';
-import { PatientSummary } from "../types/types";
-import PatientHistory from "./PatientHistory";
+import { ArrowLeft20Regular, Save20Regular, SaveArrowRight20Regular, ContentView20Regular, AddCircle20Regular } from '@fluentui/react-icons';
+import { PatientMainData } from "../types/types";
 import ConfirmationDialogs from "./ConfirmationDialogs";
+import { EvolutionType } from "../types/types";
 
 interface Props {
-    patientData: PatientSummary | null;
+    patientData: PatientMainData | null;
     setAddEvolutionComponent: (value: string) => void;
+    fetchPatientAndOpenDialog: (patient_id: number) => void;
+    clearPatientCache: (patient_id: number) => void;
 }
 
-export default function AddEvolution({ patientData, setAddEvolutionComponent }: Props) {
-    const [formData, setFormData] = useState({
-        date: "",
-        motive: "",
-        currentIllness: "",
-        physicalExam: "",
-        diagnosis: "",
-        plan: "",
-        isAlternative: false,
-        alternative: "",
-        annotation: "",
-        finishLater: false
+export default function AddEvolution({ patientData, setAddEvolutionComponent, fetchPatientAndOpenDialog, clearPatientCache }: Props) {
+    const [formData, setFormData] = useState<EvolutionType>({
+        attended_date: '',
+        current_illness: '',
+        diagnosis: '',
+        is_alternative: false,
+        is_finish_later: false,
+        motive: '',
+        patient_id: patientData?.patient_id || 0,
+        physical_exam: '',
+        plan: '',
+        therapy: ''
     });
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        const textarea = e.target;
-
-        textarea.style.height = "auto";
-        textarea.style.height = `${textarea.scrollHeight}px`;
         setFormData({
             ...formData,
             [name]: value
@@ -38,91 +36,129 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent }: 
     const showAlternative = () => {
         setFormData({
             ...formData,
-            isAlternative: !formData.isAlternative
+            is_alternative: !formData.is_alternative,
+            therapy: ''
         });
     }
 
     useEffect(() => {
         const currentDate = new Date();
-        const year = currentDate.getFullYear();
-        const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // getMonth() es 0-indexado
-        const day = String(currentDate.getDate()).padStart(2, '0');
-        const hours = String(currentDate.getHours()).padStart(2, '0');
-        const minutes = String(currentDate.getMinutes()).padStart(2, '0');
-        const seconds = String(currentDate.getSeconds()).padStart(2, '0');
-        const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-
+        const formattedDate = currentDate.toISOString().split('T')[0]; // Extracts just the yyyy-MM-dd part
         setFormData((prevData) => ({
             ...prevData,
-            date: formattedDateTime
+            attended_date: formattedDate
         }));
     }, []);
 
+    const submitEvolution = async (data: EvolutionType) => {
+        const url = 'http://127.0.0.1:54321/functions/v1/create-evolution';
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            if (!res.ok) {
+                console.error('Error submitting evolution:', res.statusText);
+                console.log(res)
+                return;
+            } else {
+                setFormData({
+                    attended_date: '',
+                    current_illness: '',
+                    diagnosis: '',
+                    is_alternative: false,
+                    is_finish_later: false,
+                    motive: '',
+                    patient_id: patientData?.patient_id || 0,
+                    physical_exam: '',
+                    plan: '',
+                    therapy: ''
+                })
+            }
+        } catch (err) {
+            console.error('Error submitting evolution:', err);
+        }
+        console.log("Enviando evolucion medica: ", data);
+        clearPatientCache(data.patient_id);
+    }
+
     const handleSubmit = () => {
-        console.log("Enviando datos", formData);
+        const dataToSend = { ...formData, is_finish_later: false };
+        setFormData(dataToSend)
+        submitEvolution(dataToSend);
     }
     const handleSubmitLater = () => {
-        setFormData({
-            ...formData,
-            finishLater: true
-        })
-        console.log("Enviando datos para continuar mas tarde", formData);
+        const dataToSend = { ...formData, is_finish_later: true };
+        setFormData(dataToSend)
+        submitEvolution(dataToSend);
     }
     const [isFormValid, setIsFormValid] = useState(false);
+    const [isFormFilled, setIsFormFilled] = useState(false);
     useEffect(() => {
-        const isValid = Object.entries(formData).every(([key, value]) => {
-            if (key === 'annotation') return true;
-            if (formData.isAlternative === false && key === 'alternative') return true;
-            return value !== "";
-        })
-        setIsFormValid(isValid);
+        const hasEmptyFields = (data: EvolutionType): boolean => {
+            for (const key in data) {
+                const value = data[key as keyof EvolutionType];
+
+                if (key === 'therapy' && !data.is_alternative) {
+                    continue;
+                }
+                if (value === '' || value === undefined || value === null) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        if (formData.attended_date !== '') {
+            setIsFormFilled(true);
+        }
+        console.log(formData)
+        setIsFormValid(!hasEmptyFields(formData));
     }, [formData]);
 
-    const [openDialog, setOpenDialog] = useState<boolean>(false);
     const handlePatientDetails = () => {
-        setOpenDialog(true);
+        fetchPatientAndOpenDialog(patientData?.patient_id || 0);
     }
-    
+
     const returnToMainPage = () => {
         setAddEvolutionComponent("list");
     }
     return (
         <div className="flex flex-col flex-grow h-full w-full px-5">
 
-            <div className="flex ">
-                
+            <div className="flex overflow-x-auto w-full">
 
-                <ConfirmationDialogs props={{valid:true,buttonDescription:'Volver',description:'Esta seguro que desea volver? los cambios no se guardaran a menos que los envie',mainButtonText:'Volver a la lista de pacientes',secondaryButtonText:"Seguir con la evolucion",title:'Confirmacion de retorno',mainFunction:returnToMainPage, icon:(<ArrowLeft20Regular/>)}} />
-                <ConfirmationDialogs props={{valid: isFormValid, mainFunction: handleSubmit, buttonDescription: 'Guardar', description: 'Esta seguro que desea enviar la evolucion medica? Una vez enviada no podra ser modificada', mainButtonText: 'Enviar', title: 'Confirmacion de envio de Evolucion', secondaryButtonText: 'Volver',icon:(<Save20Regular/>) }} />
-                <ConfirmationDialogs props={{valid: true, buttonDescription: 'Continuar mas tarde', description: '¿Estás seguro de que deseas guardar la evolución y continuar más tarde? Esto solo se puede hacer una vez', mainButtonText: 'Enviar para continuar mas tarde', mainFunction: handleSubmitLater, secondaryButtonText: 'Volver', title: 'Confirmacion para continuar mas tarde',icon:(<SaveArrowRight20Regular/>) }} />
+
+                <ConfirmationDialogs props={{ valid: true, buttonDescription: 'Volver', description: 'Esta seguro que desea volver? los cambios no se guardaran a menos que los envie', mainButtonText: 'Volver a la lista de pacientes', secondaryButtonText: "Seguir con la evolucion", title: 'Confirmacion de retorno', mainFunction: returnToMainPage, icon: (<ArrowLeft20Regular />) }} />
+                <ConfirmationDialogs props={{ valid: isFormValid, mainFunction: handleSubmit, buttonDescription: 'Guardar', description: 'Esta seguro que desea enviar la evolucion medica? Una vez enviada no podra ser modificada', mainButtonText: 'Enviar', title: 'Confirmacion de envio de Evolucion', secondaryButtonText: 'Volver', icon: (<Save20Regular />) }} />
+                <ConfirmationDialogs props={{ valid: isFormFilled, buttonDescription: 'Continuar mas tarde', description: '¿Estás seguro de que deseas guardar la evolución y continuar más tarde? Esto solo se puede hacer una vez', mainButtonText: 'Enviar para continuar mas tarde', mainFunction: handleSubmitLater, secondaryButtonText: 'Volver', title: 'Confirmacion para continuar mas tarde', icon: (<SaveArrowRight20Regular />) }} />
 
                 <Button
                     onClick={handlePatientDetails}
-                    icon={<ContentView20Regular/>}
+                    icon={<ContentView20Regular />}
                 >
                     Ver detalles de historia clinica
                 </Button>
                 <Button
                     onClick={showAlternative}
-                    appearance={`${formData.isAlternative ? "primary" : "secondary"}`}
-                    icon={<AddCircle20Regular/>}
+                    appearance={`${formData.is_alternative ? "primary" : "secondary"}`}
+                    icon={<AddCircle20Regular />}
                 >
                     Agregar terapia alternativa
                 </Button>
             </div>
             <div className="w-full">
-                <h1 className="font-roboto text-2xl mt-5">Crear evolucion para <span className="font-bold">{patientData?.personalData.name} - {patientData?.personalData.identification}</span></h1>
+                <h1 className="font-roboto text-2xl mt-5">Crear evolucion para <span className="font-bold">{patientData?.name} - {patientData?.id}</span></h1>
             </div>
-            <PatientHistory open={openDialog} setOpen={setOpenDialog} selectedPatient={patientData} />
 
             <div className="overflow-y-auto flex flex-col">
                 <div className="flex flex-col mt-5">
-                    <Label htmlFor="date">Fecha:</Label>
+                    <Label htmlFor="attended_date">Fecha:</Label>
                     <Input
-                        type="datetime-local"
-                        name="date"
-                        id="date"
-                        value={formData.date}
+                        type="date"
+                        name="attended_date"
+                        id="attended_date"
+                        value={formData.attended_date}
                         onChange={handleInputChange}
                     />
                 </div>
@@ -135,18 +171,17 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent }: 
                         value={formData.motive}
                         onChange={handleInputChange}
                         rows={3}
-                        style={{ overflow: "hidden" }}
                         placeholder="Escribe el motivo de la consulta..."
-                        resize="both"
+                        resize="vertical"
                     />
                 </div>
 
                 <div className="flex flex-col mt-5">
-                    <Label htmlFor="illness">Enfermedad actual:</Label>
+                    <Label htmlFor="current_illness">Enfermedad actual:</Label>
                     <Textarea
-                        id="illness"
-                        name="currentIllness"
-                        value={formData.currentIllness}
+                        id="current_illness"
+                        name="current_illness"
+                        value={formData.current_illness}
                         onChange={handleInputChange}
                         rows={3}
                         style={{ overflow: "hidden" }}
@@ -156,11 +191,11 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent }: 
                 </div>
 
                 <div className="flex flex-col mt-5">
-                    <Label htmlFor="physicalExam">Examen fisico</Label>
+                    <Label htmlFor="physical_exam">Examen fisico</Label>
                     <Textarea
-                        id="physicalExam"
-                        name="physicalExam"
-                        value={formData.physicalExam}
+                        id="physical_exam"
+                        name="physical_exam"
+                        value={formData.physical_exam}
                         onChange={handleInputChange}
                         rows={3}
                         style={{ overflow: "hidden" }}
@@ -194,14 +229,14 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent }: 
                         resize="both"
                     />
                 </div>
-                {formData.isAlternative && (
+                {formData.is_alternative && (
                     <div className="">
                         <div className="flex flex-col mb-10 mt-5">
-                            <Label htmlFor="alternative">Ingrese terapia alternativa</Label>
+                            <Label htmlFor="therapy">Ingrese terapia alternativa</Label>
                             <Textarea
-                                name="alternative"
-                                id="alternative"
-                                value={formData.alternative}
+                                name="therapy"
+                                id="therapy"
+                                value={formData.therapy}
                                 onChange={handleInputChange}
                                 rows={3}
                                 style={{ overflow: "hidden" }}
@@ -212,13 +247,6 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent }: 
                     </div>
                 )}
             </div>
-            {/* 
-            <div className="max-h-[80vh] overflow-y-auto px-10">
-
-                
-                
-                
-            </div> */}
         </div>
     );
 }

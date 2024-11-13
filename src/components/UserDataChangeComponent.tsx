@@ -10,7 +10,7 @@ export default function UserDataChangeComponent() {
     
     const [dataToChange, setDataToChange] = useState({
         newEmail: '',
-        name: '',
+        userName: '',
         phoneNumber: '',
     })
 
@@ -32,7 +32,7 @@ export default function UserDataChangeComponent() {
     useEffect(() => {
         setDataToChange({
             newEmail: user?.email || '',
-            name: user?.name || '',
+            userName: user?.name || '',
             phoneNumber: user?.phone || ''
         })
     }, [user])
@@ -67,10 +67,11 @@ export default function UserDataChangeComponent() {
         const filteredData = Object.fromEntries(
             Object.entries({
                 email: dataToChange.newEmail,
-                name: dataToChange.name,
+                name: dataToChange.userName,
                 phone: dataToChange.phoneNumber,
             }).filter(([value]) => value !== '')
         );
+        console.log('Filtered data: ', filteredData)
 
         if (filteredData.email === '') {
             sendUserData(filteredData)
@@ -158,7 +159,7 @@ export default function UserDataChangeComponent() {
                 {!validEmail && <div className='text-red-500 font-openSans'>Correo electronico invalido</div>}
             </div>
             <Label>Nombre</Label>
-            <Input className="w-full" id='name' name='name' placeholder='Ingrese el nombre' value={dataToChange.name} onChange={handleUserDataChange} />
+            <Input className="w-full" id='userName' name='userName' placeholder='Ingrese el nombre' value={dataToChange.userName} onChange={handleUserDataChange} />
 
             <Label>Numero de telefono</Label>
             <Input className="w-full" id='phoneNumber' name='phoneNumber' placeholder='Ingrese el numero de telefono' value={dataToChange.phoneNumber} onChange={handleUserDataChange} />

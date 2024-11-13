@@ -1,103 +1,110 @@
 export interface PatientSummary {
-    personalData: {
-      firstSession: string;
-      lastSession: string;
-      name: string;
-      age: number;
-      dateOfBirth: string;
-      occupation: string;
-      maritalStatus: string;
-      identification: string;
-      address: string;
-      phone: string;
-      mail: string;
-      religiousBelief: string;
-    };
-    finishLatter: boolean;
-    motive: string;
-    personalBackground: {
-      pathological: string;
-      farmacological: string;
-      quirurgical: string;
-      trauma: string;
-      alergic: string;
-      toxic: string;
-      hospitalary: string;
-      ginecoObstetric?: {
-        OS: {
-          gestations: number;
-          births: number;
-          Caesarean: number;
-          abortions: number;
-        };
-        lastMenstruation: string;
-        planification: string;
-        menarche: string;
-        cycles: string;
-        papSmear: string;
-        observations: string;
-      } | null;
-    };
-    familyBackground: string;
-    currentIllness: string;
-    systemReview: {
-      skin: string;
-      collagen: string;
-      lymphatic: string;
-      auditive: string;
-      visual: string;
-      respiratory: string;
-      digestive: string;
-      genitourinary: string;
-      musculoskeletal: string;
-      feeding: string;
-      sleep: string;
-      physicalActivity: string;
-      psychosocial: string;
-    };
-    familyogram: string;
-    physicalExam: {
-      heartRate: number;
-      respiratoryRate: number;
-      bloodPressure: string;
-      saturation: number;
-      temperature: number;
-      weight: number;
-      size: number;
-      IMC: number;
-      physicalExam: string;
-    };
-    diagnostic: {
-      description: string;
-    }[];
-    treatment: {
-      description: string;
-    }[];
-    doctor: string;
-    evolution: {
-      attendedDate: string;
-      motive: string;
-      currentIllness: string;
-      physicalExam: string;
-      diagnosis: string;
-      plan: string;
-      finishLater: boolean;
-      alternative: {
-        isAlternative: boolean;
-        therapy: string | null;
-      };
-    }[];
-    // annotations: {
-    //   description: string
-    // }[];
-  }
-  
+  address: string;
+  age: number;
+  clinic_id: number;
+  current_illness: string;
+  date_of_birth: string;
+  diagnosis: {
+    description: string;
+    code: string;
+  }[];
+  doctor: string;
+  email: string;
+  familiogram: string;
+  family_background: string;
+  first_session: string;
+  identification: string;
+  is_finish_later: boolean;
+  last_session: string;
+  marital_status: string;
+  motive: string;
+  name: string;
+  occupation: string;
+  personal_background: {
+    pathological: string;
+    pharmacological: string;
+    surgical: string;
+    trauma: string;
+    allergic: string;
+    toxic: string;
+    hospitalary: string;
+    gestations?: number;
+    births?: number;
+    caesarean?: number;
+    abortions?: number;
+    last_menstruation?: string;
+    planification?: string;
+    menarche?: string;
+    cycles?: string;
+    pap_smear?: string;
+    observations?: string;
+    isGinecoObstetric: boolean;
+  };
+  phone: string;
+  physical_exam: {
+    heart_rate: number;
+    respiratory_rate: number;
+    blood_pressure: string;
+    saturation: number;
+    temperature: number;
+    weight: number;
+    size: number;
+    imc: number;
+    physical_exam: string;
+  };
+  religious_belief: string;
+  system_review: {
+    skin: string;
+    collagen: string;
+    lymphatic: string;
+    auditory: string;
+    visual: string;
+    respiratory: string;
+    digestive: string;
+    genitourinary: string;
+    musculoskeletal: string;
+    feeding: string;
+    sleep: string;
+    physical_activity: string;
+    psychosocial: string;
+  };
+  treatment: {
+    description: string;
+  }[];
+  evolution?: EvolutionType[];
+}
+export interface PatientMainData {
+  name: string;
+  id: string;
+  last_session: string;
+  first_session: string;
+  patient_id: number;
+}
+
+export interface EvolutionType{
+  evolution_id?: number;
+  attended_date: string;
+  current_illness: string;
+  diagnosis: string;
+  is_alternative: boolean;
+  is_finish_later: boolean;
+  motive: string;
+  patient_id: number;
+  physical_exam: string;
+  plan: string;
+  therapy: string;
+  annotations?: {
+    description: string,
+    evolution_id: number,
+    created_at: string,
+  }[];
+}
 
 export interface user {
-    id: number,
-    name: string,
-    email: string,
-    role: string,
-    nickName: string,
-    code: string,
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  nickName: string;
+  code: string;
 }

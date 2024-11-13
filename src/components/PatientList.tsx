@@ -1,36 +1,37 @@
 import { useEffect, useMemo, useState } from "react";
 import { TableColumnDefinition,Menu, createTableColumn, useTableFeatures, useTableSort, TableColumnId, Table, TableHeader, TableHeaderCell, TableRow, TableBody, TableCell, TableCellLayout, Button, Avatar, Label, Select, Input, MenuButton, MenuItem, MenuList, MenuPopover, MenuTrigger } from "@fluentui/react-components";
-import { PatientSummary } from '../types/types.ts';
-import PatientHistory from "./PatientHistory.tsx";
+import { PatientMainData } from '../types/types.ts';
 import { ArrowDownload28Regular, DocumentAdd28Regular, Eye28Regular } from '@fluentui/react-icons';
 
 interface Props {
-    patientData: PatientSummary[];
+    patientData: PatientMainData[];
     setAddEvolutionComponent: (value: string) => void;
-    fatherSetSelectedPatient: (value: PatientSummary | null) => void;
+    fatherSetSelectedPatient: (value: number) => void;
     setExportType: (value: string) => void;
+    setSelectedPatient: (value: PatientMainData) => void;
+    fetchPatientAndExport: (patient_id: number) => void;
 }
 
-const columns: TableColumnDefinition<PatientSummary>[] = [
-    createTableColumn<PatientSummary>({
+const columns: TableColumnDefinition<PatientMainData>[] = [
+    createTableColumn<PatientMainData>({
         columnId: 'name',
-        compare: (a, b) => a.personalData.name.localeCompare(b.personalData.name),
+        compare: (a, b) => a.name.localeCompare(b.name),
     }),
-    createTableColumn<PatientSummary>({
+    createTableColumn<PatientMainData>({
         columnId: 'identification',
-        compare: (a, b) => a.personalData.identification.localeCompare(b.personalData.identification),
+        compare: (a, b) => a.id.localeCompare(b.id),
     }),
-    createTableColumn<PatientSummary>({
+    createTableColumn<PatientMainData>({
         columnId: 'lastSession',
-        compare: (a, b) => a.personalData.lastSession.localeCompare(b.personalData.lastSession),
+        compare: (a, b) => a.last_session.localeCompare(b.last_session),
     }),
-    createTableColumn<PatientSummary>({
+    createTableColumn<PatientMainData>({
         columnId: 'firstSession',
-        compare: (a, b) => a.personalData.firstSession.localeCompare(b.personalData.firstSession),
+        compare: (a, b) => a.first_session.localeCompare(b.first_session),
     }),
 ];
 
-export default function PatientList({ patientData,setAddEvolutionComponent,fatherSetSelectedPatient,setExportType }: Props) {
+export default function PatientList({ patientData,setAddEvolutionComponent,fatherSetSelectedPatient,setExportType,setSelectedPatient,fetchPatientAndExport }: Props) {
     const [handleFilter, setHandleFilter] = useState<string>('name');
 
     const handleFilterButton = (input: string) => {
@@ -46,13 +47,13 @@ export default function PatientList({ patientData,setAddEvolutionComponent,fathe
         }
         return patientData?.filter((patient) => {
             if (handleFilter === 'name') {
-                return patient.personalData.name.toLowerCase().includes(searchElement.toLowerCase());
+                return patient.name.toLowerCase().includes(searchElement.toLowerCase());
             } else if (handleFilter === 'personalId') {
-                return patient.personalData.identification.toLowerCase().includes(searchElement.toLowerCase());
+                return patient.id.toLowerCase().includes(searchElement.toLowerCase());
             } else if (handleFilter === 'firstSession') {
-                return patient.personalData.firstSession.split("-")[1].includes(searchElement.split("-")[1]);
+                return patient.first_session.split("-")[1].includes(searchElement.split("-")[1]);
             } else if (handleFilter === 'lastSession') {
-                return patient.personalData.lastSession.split("-")[1].includes(searchElement.split("-")[1]);
+                return patient.last_session.split("-")[1].includes(searchElement.split("-")[1]);
             }
         });
     }, [searchElement, handleFilter, patientData]);
@@ -83,24 +84,21 @@ export default function PatientList({ patientData,setAddEvolutionComponent,fathe
 
     const rows = sort(getRows());
 
-    const [selectedPatient, setSelectedPatient] = useState<PatientSummary | null>(null);
-    const [openDialog, setOpenDialog] = useState<boolean>(false);
-    const handlePatientSelection = (patient: PatientSummary) => {
-        setSelectedPatient(patient);
-        setOpenDialog(true);
+    const handlePatientSelection = (patient: PatientMainData) => {
+        fatherSetSelectedPatient(patient.patient_id);
     }
-    const handleAddEvolution = (patient: PatientSummary) => {
+    const handleAddEvolution = (patient: PatientMainData) => {
         setAddEvolutionComponent("evolution");
-        fatherSetSelectedPatient(patient);
+        setSelectedPatient(patient);
     }
-    const handleExportPdfSummary = (patient: PatientSummary) => {
+    const handleExportPdfSummary = (patient: PatientMainData) => {
         setAddEvolutionComponent("export");
-        fatherSetSelectedPatient(patient);
+        fetchPatientAndExport(patient.patient_id);
         setExportType("resumen");
     }
-    const handleExportPdfComplete = (patient: PatientSummary) => {
+    const handleExportPdfComplete = (patient: PatientMainData) => {
         setAddEvolutionComponent("export");
-        fatherSetSelectedPatient(patient);
+        fetchPatientAndExport(patient.patient_id);
         setExportType("completo");
     }
     return (
@@ -142,7 +140,7 @@ export default function PatientList({ patientData,setAddEvolutionComponent,fathe
                     )}
                 </div>
             </div>
-            <PatientHistory open={openDialog} setOpen={setOpenDialog} selectedPatient={selectedPatient} />
+            
             <div className="flex-grow overflow-x-auto">
                 <Table sortable className="mt-5 min-w-full">
                     <TableHeader className="font-roboto font-semibold">
@@ -160,7 +158,7 @@ export default function PatientList({ patientData,setAddEvolutionComponent,fathe
                             <TableHeaderCell className="w-48" {...headerSortProps("lastSession")}>
                                 Fecha de ultima consulta
                             </TableHeaderCell>
-                            <TableHeaderCell className="w-60">
+                            <TableHeaderCell className="w-36">
 
                             </TableHeaderCell>
                         </TableRow>
@@ -170,36 +168,39 @@ export default function PatientList({ patientData,setAddEvolutionComponent,fathe
                             <TableRow key={index}>
                                 <TableCell>
                                     <div className="flex items-center justify-center">
-                                        <Avatar name={item.personalData.name} />
+                                        <Avatar name={item.name} />
                                     </div>
                                 </TableCell>
                                 <TableCell>
                                     <TableCellLayout>
-                                        {item.personalData.name}
+                                        {item.name}
                                     </TableCellLayout>
                                 </TableCell>
                                 <TableCell>
-                                    {item.personalData.identification}
+                                    {item.id}
                                 </TableCell>
                                 <TableCell>
-                                    {item.personalData.firstSession}
+                                    {item.first_session}
                                 </TableCell>
                                 <TableCell>
-                                    {item.personalData.lastSession}
+                                    {item.last_session}
                                 </TableCell>
                                 <TableCell>
-                                    <div>
+                                    
+                                    <div className="flex flex-col py-2">
+                                        {/* ver detalles de historia */}
                                         <Button
                                             onClick={() => handlePatientSelection(item)}
                                             icon={<Eye28Regular />}
                                         >
                                             Ver mas
                                         </Button>
+                                        {/* Add evolution */}
                                         <Button
                                             icon={<DocumentAdd28Regular />}
                                             onClick={() => handleAddEvolution(item)}
                                         >
-                                            Agregar
+                                            Evolucion
                                         </Button>
                                         <Menu>
                                             <MenuTrigger disableButtonEnhancement>
