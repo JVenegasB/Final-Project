@@ -6,6 +6,7 @@ import {useClinicContext} from '../context/clinicContext.ts';
 
 export default function CompanyDataChangeComponent() {
     const [clinicInformation,setClinicInformation] = useClinicContext();
+    //get clinic data
     const fecthClinicData = async () => {
         const { data, error } = await client.from('clinic').select('*').eq('id', clinicInformation?.id).single()
         if (error) {
@@ -29,7 +30,7 @@ export default function CompanyDataChangeComponent() {
             [name]: value
         }))
     }
-
+    //Submit updated clinic data
     const handleDataSubmit = async () => {
         if (clinicData.name === '' || clinicData.address === '' || clinicData.phone === '' || clinicData.description === '') {
             console.log('Please fill all fields')
@@ -47,7 +48,7 @@ export default function CompanyDataChangeComponent() {
             fecthClinicData()
         }
     }
-
+    //Disable button if any field is empty
     const [disableButton, setDisableButton] = useState(true)
     useEffect(() => {
         if (clinicData.name === '' || clinicData.address === '' || clinicData.phone === '' || clinicData.description === '') {
@@ -56,11 +57,6 @@ export default function CompanyDataChangeComponent() {
             setDisableButton(false)
         }
     }, [clinicData])
-
-    useEffect(() => {
-        console.log(clinicInformation)
-    }, [clinicInformation])
-
     return (
         <div className="grid grid-cols-[auto,1fr] gap-y-2 items-center overflow-y-auto max-h-[calc(100vh-650px)]">
 

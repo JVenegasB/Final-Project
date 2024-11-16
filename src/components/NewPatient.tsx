@@ -10,6 +10,7 @@ import { useClinicContext } from '../context/clinicContext';
 import { useUserContext } from '../context/userContext';
 
 const initialPatientSummary: PatientSummary = {
+    id: 0,
     address: '',
     age: 0,
     clinic_id: 0,
@@ -78,8 +79,11 @@ const initialPatientSummary: PatientSummary = {
     },
     treatment: [],
 };
+interface NewPatientProps { 
+    fetchPatientList: () => void;
+}
 
-export default function NewPatient() {
+export default function NewPatient({fetchPatientList}: NewPatientProps) {
     //variable to store the form data
     const [formData, setFormData] = useState<PatientSummary>(initialPatientSummary);
     //Context to get clinic and logged user data
@@ -361,7 +365,7 @@ export default function NewPatient() {
         }));
     };
 
-
+    //Send later patient history
     const sendLater = async () => {
         const updatedData = { ...formData, is_finish_later: true };
         setFormData(updatedData);
@@ -378,12 +382,14 @@ export default function NewPatient() {
                 console.log('Data saved successfully');
                 //vaciar formulario
                 setFormData(initialPatientSummary);
+                fetchPatientList()
             }
         } catch (error) {
             console.error('Error saving data:', error);
             
         }
     }
+    //Send patient history
     const sendData = async() => {
         const updatedData = { ...formData, is_finish_later: false };
         setFormData(updatedData);
@@ -400,6 +406,7 @@ export default function NewPatient() {
                 console.log('Data saved successfully');
                 //Dialogo de confirmacion de envio
                 setFormData(initialPatientSummary);
+                fetchPatientList()
             }
         } catch (error) {
             console.error('Error saving data:', error);

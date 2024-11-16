@@ -1,10 +1,12 @@
 export interface PatientSummary {
+  id: number;
   address: string;
   age: number;
   clinic_id: number;
   current_illness: string;
   date_of_birth: string;
   diagnosis: {
+    id?: number;
     description: string;
     code: string;
   }[];
@@ -21,6 +23,7 @@ export interface PatientSummary {
   name: string;
   occupation: string;
   personal_background: {
+    id?: number;
     pathological: string;
     pharmacological: string;
     surgical: string;
@@ -42,6 +45,7 @@ export interface PatientSummary {
   };
   phone: string;
   physical_exam: {
+    id?: number;
     heart_rate: number;
     respiratory_rate: number;
     blood_pressure: string;
@@ -54,6 +58,7 @@ export interface PatientSummary {
   };
   religious_belief: string;
   system_review: {
+    id?: number;
     skin: string;
     collagen: string;
     lymphatic: string;
@@ -69,6 +74,7 @@ export interface PatientSummary {
     psychosocial: string;
   };
   treatment: {
+    id?: number;
     description: string;
   }[];
   evolution?: EvolutionType[];
@@ -79,6 +85,7 @@ export interface PatientMainData {
   last_session: string;
   first_session: string;
   patient_id: number;
+  is_finish_later: boolean;
 }
 
 export interface EvolutionType{
@@ -94,10 +101,25 @@ export interface EvolutionType{
   plan: string;
   therapy: string;
   annotations?: {
+    id?: number;
     description: string,
     evolution_id: number,
     created_at: string,
   }[];
+}
+export interface EvolutionToComplete {
+  id: number;
+  patient_id: number;
+  attended_date: string;
+  motive: string;
+  current_illness: string;
+  physical_exam: string;
+  diagnosis: string;
+  plan: string;
+  is_finish_later: boolean;
+  is_alternative: boolean;
+  therapy: string;
+  patient_name: string;
 }
 
 export interface user {

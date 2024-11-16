@@ -85,6 +85,7 @@ export default function PatientList({ patientData,setAddEvolutionComponent,fathe
     const rows = sort(getRows());
 
     const handlePatientSelection = (patient: PatientMainData) => {
+        console.log("Oacuebte sekeccuibadi", patient);
         fatherSetSelectedPatient(patient.patient_id);
     }
     const handleAddEvolution = (patient: PatientMainData) => {

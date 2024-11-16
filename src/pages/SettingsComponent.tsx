@@ -25,12 +25,13 @@ interface JoinRequestType {
 
 
 export default function SettingsComponent({ isClinicMember }: SettingsComponentProps) {
+  //context data
   const [user] = useUserContext();
-
   const [clinicData] = useClinicContext();
   const { isDarkMode, setIsDarkMode } = useThemeContext();
+  //Store values from form
   const [clinicRequestList, setClinicRequestList] = useState<JoinRequestType[]>([])
-
+  //Get join request users company
   const fetchJoinRequests = async () => {
     const { data: clinic, error } = await client.from('join_requests').select('*').eq('clinic_id', clinicData?.id)
     if (error) {
@@ -40,17 +41,16 @@ export default function SettingsComponent({ isClinicMember }: SettingsComponentP
     }
   }
 
-
+  //Fetch on load
   useEffect(() => {
     if (isClinicMember) {
       fetchJoinRequests()
     }
   }, [])
-  useEffect(() => {
-    console.log(user?.role)
-  }, [user])
 
+  //Accept request from user
   const handleAcceptRequest = async (request_id: number) => {
+    //change to edge function
     console.log(request_id)
     const { data: requestData, error } = await client.from('join_requests').select('*').eq('id', request_id).single()
     if (error) {
@@ -85,8 +85,9 @@ export default function SettingsComponent({ isClinicMember }: SettingsComponentP
       }
     }
   }
+  //Reject join request
   const handleRejectRequest = async (request_id: number) => {
-
+    //Move to edge function
     const { error } = await client.from('join_requests').update({
       status: 'rejected',
       decision_date: new Date().toISOString()

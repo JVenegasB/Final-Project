@@ -1,8 +1,11 @@
 // import { DocumentPdfRegular } from '@fluentui/react-icons';
-import { Accordion, AccordionItem, AccordionHeader, AccordionPanel, Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Textarea } from '@fluentui/react-components';
+import { Accordion, AccordionItem, AccordionHeader, AccordionPanel, Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Textarea, Spinner } from '@fluentui/react-components';
 import { PatientSummary } from '../types/types.ts'
 import { AddCircle24Regular } from '@fluentui/react-icons';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import AccordionDetailSection from './AccordionDetailSection.tsx';
+import DetailRow from './DetailRow.tsx';
+import { DetailGridRow } from './DetailedGridRow.tsx'
 
 interface Props {
     selectedPatient: PatientSummary | null;
@@ -12,26 +15,27 @@ interface Props {
     selectedPatientId: number | null;
 }
 
-
-
 export default function PatientHistory({ selectedPatient, open, setOpen, fetchSelectedPatientDetails, selectedPatientId }: Props) {
+    //Show annotations dialog
     const [annotationsDialog, setAnnotationsDialog] = useState<boolean>(false);
+    //Store annotations values
     const [newAnnotation, setNewAnnotation] = useState<string>('');
+    //Store id of the evolution
     const [evolutionId, setEvolutionId] = useState<number>(0);
+    //Handle dialog appearance
     const showDialog = (evolution_id: number) => {
         setEvolutionId(evolution_id);
         setAnnotationsDialog(true)
     }
-
-
+    //Handle close dialog
     const closeDialog = () => {
         setAnnotationsDialog(false);
         setEvolutionId(0);
         setNewAnnotation('');
     }
+    //Send annotation related to a evolution
     const sendData = async () => {
         const currentDate = new Date().toISOString();
-        console.log('data ', newAnnotation, ' to id ', evolutionId, ' at date ', currentDate);
         const url = 'http://127.0.0.1:54321/functions/v1/add-annotation'
         const data = {
             description: newAnnotation,
@@ -50,7 +54,6 @@ export default function PatientHistory({ selectedPatient, open, setOpen, fetchSe
             console.error('Error sending annotation:', err);
         }
 
-
         setAnnotationsDialog(false);
         setNewAnnotation('');
         setEvolutionId(0);
@@ -58,415 +61,141 @@ export default function PatientHistory({ selectedPatient, open, setOpen, fetchSe
         fetchSelectedPatientDetails(selectedPatientId || 0, true);
     }
 
-    useEffect(() => {
-        console.log(selectedPatient)
-    }, [selectedPatient])
-
     return (
         <Dialog open={open} >
             <DialogSurface style={{ width: '65%', maxWidth: '90%' }}>
-                <DialogBody>
-                    <DialogTitle>
-                        <div className='flex flex-col font-roboto'>
+                {(selectedPatient?.id === selectedPatientId) ? (
+                    <DialogBody>
+                        <DialogTitle>
+                            <div className='flex flex-col font-roboto'>
+                                <div>
+                                    <span>Paciente: </span>
+                                    <span className='font-lato'>{selectedPatient?.name}</span>
+                                </div>
+                                <div className='text-sm'>
+                                    <span>Cedula: </span>
+                                    <span className='font-lato'>{selectedPatient?.identification}</span>
+                                </div>
+                            </div>
+                        </DialogTitle>
+                        <DialogContent>
                             <div>
-                                <span>Paciente: </span>
-                                <span className='font-lato'>{selectedPatient?.name}</span>
-                            </div>
-                            <div className='text-sm'>
-                                <span>Cedula: </span>
-                                <span className='font-lato'>{selectedPatient?.identification}</span>
-                            </div>
-                        </div>
-                    </DialogTitle>
-                    <DialogContent>
-                        <div>
-                            <Accordion className="h-full" multiple>
-                                <AccordionItem value='0'>
-                                    <AccordionHeader>
-                                        <span className='font-roboto font-semibold text-lg'>0. Datos de paciente</span>
-                                    </AccordionHeader>
-                                    <AccordionPanel className='px-10'>
+                                <Accordion className="h-full" multiple>
+                                    <AccordionDetailSection title='0. Datos del paciente'>
                                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                            <div className="flex flex-row items-center justify-start">
-                                                <div className="font-semibold font-roboto mr-2">Fecha: </div>
-                                                <span>{selectedPatient?.first_session}</span>
-                                            </div>
-                                            <div className="flex flex-row items-center justify-start">
-                                                <div className="font-semibold font-roboto mr-2">Doctor: </div>
-                                                <span>{selectedPatient?.doctor}</span>
-                                            </div>
-
-                                            <div className="flex flex-row items-center justify-start">
-                                                <div className="font-semibold font-roboto mr-2">Nombre: </div>
-                                                <span>{selectedPatient?.name}</span>
-                                            </div>
-                                            <div className="flex flex-row items-center justify-start">
-                                                <div className="font-semibold font-roboto mr-2">Edad: </div>
-                                                <span>{selectedPatient?.age}</span>
-                                            </div>
-
-                                            <div className="flex flex-row items-center justify-start">
-                                                <div className="font-semibold font-roboto mr-2">Fecha de nacimiento: </div>
-                                                <span>{selectedPatient?.date_of_birth}</span>
-                                            </div>
-                                            <div className="flex flex-row items-center justify-start">
-                                                <div className="font-semibold font-roboto mr-2">Ocupación: </div>
-                                                <span>{selectedPatient?.occupation}</span>
-                                            </div>
-
-                                            <div className="flex flex-row items-center justify-start">
-                                                <div className="font-semibold font-roboto mr-2">Estado civil: </div>
-                                                <span>{selectedPatient?.marital_status}</span>
-                                            </div>
-                                            <div className="flex flex-row items-center justify-start">
-                                                <div className="font-semibold font-roboto mr-2">Identificación: </div>
-                                                <span>{selectedPatient?.identification}</span>
-                                            </div>
-
-                                            <div className="flex flex-row items-center justify-start">
-                                                <div className="font-semibold font-roboto mr-2">Teléfono: </div>
-                                                <span>{selectedPatient?.phone}</span>
-                                            </div>
-                                            <div className="flex flex-row items-center justify-start">
-                                                <div className="font-semibold font-roboto mr-2">Correo: </div>
-                                                <span>{selectedPatient?.email}</span>
-                                            </div>
-
-                                            <div className="flex flex-row items-center justify-start lg:col-span-2">
-                                                <div className="font-semibold font-roboto mr-2">Dirección: </div>
-                                                <span>{selectedPatient?.address}</span>
-                                            </div>
-                                            <div className="flex flex-row items-center justify-start lg:col-span-2">
-                                                <div className="font-semibold font-roboto mr-2">Creencia religiosa: </div>
-                                                <span>{selectedPatient?.religious_belief}</span>
-                                            </div>
+                                            <DetailRow label="Fecha" value={selectedPatient?.first_session} />
+                                            <DetailRow label="Doctor" value={selectedPatient?.doctor} />
+                                            <DetailRow label="Nombre" value={selectedPatient?.name} />
+                                            <DetailRow label="Edad" value={selectedPatient?.age} />
+                                            <DetailRow label="Fecha de nacimiento" value={selectedPatient?.date_of_birth} />
+                                            <DetailRow label="Ocupación" value={selectedPatient?.occupation} />
+                                            <DetailRow label="Estado civil" value={selectedPatient?.marital_status} />
+                                            <DetailRow label="Identificación" value={selectedPatient?.identification} />
+                                            <DetailRow label="Teléfono" value={selectedPatient?.phone} />
+                                            <DetailRow label="Correo" value={selectedPatient?.email} />
+                                            <DetailRow label="Dirección" value={selectedPatient?.address} spanFull />
+                                            <DetailRow label="Creencia religiosa" value={selectedPatient?.religious_belief} spanFull />
                                         </div>
-
-
-                                    </AccordionPanel>
-                                </AccordionItem>
-                                <AccordionItem value='1' className=''>
-                                    <AccordionHeader>
-                                        <div className='font-roboto font-semibold text-lg'>
-                                            1. Motivo de consulta
-                                        </div>
-                                    </AccordionHeader>
-                                    <AccordionPanel className='px-10 font-openSans'>
-                                        <div>
-                                            {selectedPatient?.motive}
-                                        </div>
-                                    </AccordionPanel>
-                                </AccordionItem>
-                                <AccordionItem value='2'>
-                                    <AccordionHeader>
-                                        <div className='font-roboto font-semibold text-lg'>
-                                            2. Enfermedad actual
-                                        </div>
-                                    </AccordionHeader>
-                                    <AccordionPanel className='px-10 font-openSans'>
-                                        {selectedPatient?.current_illness}
-                                    </AccordionPanel>
-                                </AccordionItem>
-                                <AccordionItem value='3'>
-                                    <AccordionHeader>
-                                        <div className='font-roboto font-semibold text-lg'>
-                                            3. Antecedentes personales
-                                        </div>
-                                    </AccordionHeader>
-                                    <AccordionPanel className='px-10  font-openSans'>
-                                        <div className='flex flex-col'>
-                                            <div className='flex flex-row py-2 items-center border-b-2'>
-                                                <div className='font-semibold font-roboto'>Patologicos: </div>
-                                                <div className='ml-2'> {selectedPatient?.personal_background?.pathological}</div>
+                                    </AccordionDetailSection>
+                                    <AccordionDetailSection title='1. Motivo de consulta'>
+                                        <AccordionPanel className='px-10 font-openSans'>
+                                            <div>
+                                                {selectedPatient?.motive}
                                             </div>
-                                            <div className='flex flex-row py-2 items-center border-b-2'>
-                                                <div className='font-semibold font-roboto'>Farmacologicos: </div>
-                                                <div className='ml-2'> {selectedPatient?.personal_background?.pharmacological}</div>
-                                            </div>
+                                        </AccordionPanel>
+                                    </AccordionDetailSection>
+                                    <AccordionDetailSection title='2. Enfermedad actual'>
+                                        <AccordionPanel className='px-10 font-openSans'>
+                                            {selectedPatient?.current_illness}
+                                        </AccordionPanel>
+                                    </AccordionDetailSection>
 
-                                            <div className='flex flex-row py-2 items-center border-b-2'>
-                                                <div className='font-semibold font-roboto'>Hospitalarios: </div>
-                                                <div className='ml-2'> {selectedPatient?.personal_background?.hospitalary}</div>
-                                            </div>
-
-                                            <div className='flex flex-row py-2 items-center border-b-2'>
-                                                <div className='font-semibold font-roboto'>Quirurgico: </div>
-                                                <div className='ml-2'> {selectedPatient?.personal_background?.surgical}</div>
-                                            </div>
-
-                                            <div className='flex flex-row py-2 items-center border-b-2'>
-                                                <div className='font-semibold font-roboto'>Traumatico:</div>
-                                                <div className='ml-2'> {selectedPatient?.personal_background?.trauma}</div>
-                                            </div>
-
-                                            <div className='flex flex-row py-2 items-center border-b-2'>
-                                                <div className='font-semibold font-roboto'>Alergico:</div>
-                                                <div className='ml-2'> {selectedPatient?.personal_background?.allergic}</div>
-                                            </div>
-
-                                            <div className='flex flex-row my-2 py-2 items-center border-b-2'>
-                                                <div className='font-semibold font-roboto'>Toxico:</div>
-                                                <div className='ml-2'> {selectedPatient?.personal_background?.toxic}</div>
-                                            </div>
-
-                                        </div>
+                                    <AccordionDetailSection title="3. Antecedentes personales">
+                                        <DetailRow label="Patológicos" value={selectedPatient?.personal_background?.pathological} />
+                                        <DetailRow label="Farmacológicos" value={selectedPatient?.personal_background?.pharmacological} />
+                                        <DetailRow label="Hospitalarios" value={selectedPatient?.personal_background?.hospitalary} />
+                                        <DetailRow label="Quirúrgico" value={selectedPatient?.personal_background?.surgical} />
+                                        <DetailRow label="Traumático" value={selectedPatient?.personal_background?.trauma} />
+                                        <DetailRow label="Alérgico" value={selectedPatient?.personal_background?.allergic} />
+                                        <DetailRow label="Tóxico" value={selectedPatient?.personal_background?.toxic} />
                                         {selectedPatient?.personal_background?.isGinecoObstetric ? (
                                             <div>
-
-                                                <div className='font-semibold font-roboto my-2 flex justify-center'>
-                                                    Gineco-obstetrico:
+                                                <div className="font-semibold font-roboto my-2 flex justify-center">
+                                                    Gineco-obstétrico:
                                                 </div>
-                                                <div className='grid lg:grid-cols-5 grid-cols-1 gap-2 mb-5'>
-                                                    <div className='font-semibold font-roboto'>
-                                                        FO:
-                                                    </div>
-                                                    <div className='grid grid-cols-2 lg:border-l-2 border-b-2 lg:border-b-0'>
-                                                        <div className='font-semibold font-roboto pl-2'>G:</div>
-                                                        <div >{selectedPatient?.personal_background?.gestations}</div>
-                                                    </div>
-                                                    <div className='grid grid-cols-2 lg:border-l-2 border-b-2 lg:border-b-0'>
-                                                        <div className='font-semibold font-roboto pl-2'>P:</div>
-                                                        <div>{selectedPatient?.personal_background?.births}</div>
-                                                    </div>
-                                                    <div className='grid grid-cols-2 lg:border-l-2 border-b-2 lg:border-b-0'>
-                                                        <div className='font-semibold font-roboto pl-2'>C:</div>
-                                                        <div>{selectedPatient?.personal_background?.caesarean}</div>
-                                                    </div>
-                                                    <div className='grid grid-cols-2 lg:border-l-2 border-b-2 lg:border-b-0'>
-                                                        <div className='font-semibold font-roboto pl-2'>A:</div>
-                                                        <div>{selectedPatient?.personal_background?.abortions}</div>
-                                                    </div>
+                                                <div className="grid lg:grid-cols-5 grid-cols-1 gap-2 mb-5">
+                                                    <DetailRow label="FO:" value="" />
+                                                    <DetailRow label="G" value={selectedPatient?.personal_background?.gestations} />
+                                                    <DetailRow label="P" value={selectedPatient?.personal_background?.births} />
+                                                    <DetailRow label="C" value={selectedPatient?.personal_background?.caesarean} />
+                                                    <DetailRow label="A" value={selectedPatient?.personal_background?.abortions} />
                                                 </div>
-                                                <div className='grid grid-cols-2 border-b-2 py-2'>
-                                                    <div className='font-semibold font-roboto'>Menarquia:</div>
-                                                    <div>{selectedPatient?.personal_background?.menarche}</div>
+                                                <div className="grid lg:grid-cols-2 grid-cols-1 gap-2">
+                                                    <DetailRow label="Menarquía" value={selectedPatient?.personal_background?.menarche} />
+                                                    <DetailRow label="Ciclos" value={selectedPatient?.personal_background?.cycles} />
+                                                    <DetailRow label="FUM" value={selectedPatient?.personal_background?.last_menstruation} />
+                                                    <DetailRow label="Planificación" value={selectedPatient?.personal_background?.planification} />
+                                                    <DetailRow label="FUPAP" value={selectedPatient?.personal_background?.pap_smear} />
                                                 </div>
-                                                <div className='grid grid-cols-2 border-b-2 py-2'>
-                                                    <div className='font-semibold font-roboto'>Ciclos:</div>
-                                                    <div>{selectedPatient?.personal_background?.cycles}</div>
-                                                </div>
-                                                <div className='grid grid-cols-2 border-b-2 py-2'>
-                                                    <div className='font-semibold font-roboto'>FUM:</div>
-                                                    <div>{selectedPatient?.personal_background?.last_menstruation}</div>
-                                                </div>
-                                                <div className='grid grid-cols-2 border-b-2 py-2'>
-                                                    <div className='font-semibold font-roboto'>Planificacion:</div>
-                                                    <div className='pl-2'>{selectedPatient?.personal_background?.planification}</div>
-                                                </div>
-                                                <div className='grid grid-cols-2 border-b-2'>
-                                                    <div className='font-semibold font-roboto py-2'>FUPAP:</div>
-                                                    <div>{selectedPatient?.personal_background?.pap_smear}</div>
-                                                </div>
-                                                <div className='grid grid-cols-3'>
-                                                    <div className='font-semibold font-roboto py-2'>Observaciones:</div>
-                                                    <div className='col-span-2'>{selectedPatient?.personal_background?.observations}</div>
-                                                </div>
-
+                                                <DetailRow
+                                                    label="Observaciones"
+                                                    value={selectedPatient?.personal_background?.observations}
+                                                    spanFull
+                                                />
                                             </div>
                                         ) : (
-                                            <div className='flex flex-row my-2 py-2 items-center border-b-2'>
-                                                <div className='font-semibold font-roboto'>Ginecobstetrico:</div>
-                                                <div className='ml-2'> N/A</div>
-                                            </div>
+                                            <DetailRow label="Ginecobstétrico" value="N/A" spanFull />
                                         )}
 
-
-                                    </AccordionPanel>
-                                </AccordionItem>
-                                <AccordionItem value='4'>
-                                    <AccordionHeader>
-                                        <div className='font-roboto font-semibold text-lg'>
-                                            4. Antecedentes familiares
-                                        </div>
-                                    </AccordionHeader>
-                                    <AccordionPanel className='px-10 font-openSans'>
+                                    </AccordionDetailSection>
+                                    <AccordionDetailSection title='4. Antecedentes familiares'>
                                         <div>
                                             {selectedPatient?.family_background}
                                         </div>
-                                    </AccordionPanel>
-                                </AccordionItem>
-                                <AccordionItem value='5'>
-                                    <AccordionHeader>
-                                        <div className='font-roboto font-semibold text-lg'>
-                                            5. Revision por sistemas
-                                        </div>
-                                    </AccordionHeader>
-                                    <AccordionPanel className='px-10 font-openSans'>
-                                        <div className="grid grid-cols-1 gap-4">
-                                            <div className="grid grid-cols-3 items-center h-full">
-                                                <div className="font-semibold font-roboto">
-                                                    Piel y fanera:
-                                                </div>
-                                                <div className="col-span-2">
-                                                    {selectedPatient?.system_review.skin}
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-3 items-center h-full">
-                                                <div className="font-semibold font-roboto">
-                                                    Genitourinario:
-                                                </div>
-                                                <div className="col-span-2">
-                                                    {selectedPatient?.system_review?.genitourinary}
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-3 items-center h-full">
-                                                <div className="font-semibold font-roboto">
-                                                    Colágeno:
-                                                </div>
-                                                <div className="col-span-2">
-                                                    {selectedPatient?.system_review.collagen}
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-3 items-center h-full">
-                                                <div className="font-semibold font-roboto">
-                                                    Musculoesquelético:
-                                                </div>
-                                                <div className="col-span-2">
-                                                    {selectedPatient?.system_review.musculoskeletal}
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-3 items-center h-full">
-                                                <div className="font-semibold font-roboto">
-                                                    Linfático:
-                                                </div>
-                                                <div className="col-span-2">
-                                                    {selectedPatient?.system_review.lymphatic}
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-3 items-center h-full">
-                                                <div className="font-semibold font-roboto">
-                                                    Alimentación:
-                                                </div>
-                                                <div className="col-span-2">
-                                                    {selectedPatient?.system_review.feeding}
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-3 items-center h-full">
-                                                <div className="font-semibold font-roboto">
-                                                    Auditivo:
-                                                </div>
-                                                <div className="col-span-2">
-                                                    {selectedPatient?.system_review.auditory}
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-3 items-center h-full">
-                                                <div className="font-semibold font-roboto">
-                                                    Sueño:
-                                                </div>
-                                                <div className="col-span-2">
-                                                    {selectedPatient?.system_review.sleep}
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-3 items-center h-full">
-                                                <div className="font-semibold font-roboto">
-                                                    Visual:
-                                                </div>
-                                                <div className="col-span-2">
-                                                    {selectedPatient?.system_review.visual}
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-3 items-center h-full">
-                                                <div className="font-semibold font-roboto">
-                                                    Actividad Física:
-                                                </div>
-                                                <div className="col-span-2">
-                                                    {selectedPatient?.system_review.physical_activity}
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-3 items-center h-full">
-                                                <div className="font-semibold font-roboto">
-                                                    Respiratorio:
-                                                </div>
-                                                <div className="col-span-2">
-                                                    {selectedPatient?.system_review.respiratory}
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-3 items-center h-full">
-                                                <div className="font-semibold font-roboto">
-                                                    Psicosocial:
-                                                </div>
-                                                <div className="col-span-2">
-                                                    {selectedPatient?.system_review.psychosocial}
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-3 items-center h-full">
-                                                <div className="font-semibold font-roboto">
-                                                    Digestivo:
-                                                </div>
-                                                <div className="col-span-2">
-                                                    {selectedPatient?.system_review.digestive}
-                                                </div>
-                                            </div>
-                                        </div>
+                                    </AccordionDetailSection>
 
-                                    </AccordionPanel>
-                                </AccordionItem>
-                                <AccordionItem value='6'>
-                                    <AccordionHeader>
-                                        <div className='font-roboto font-semibold text-lg'>
-                                            6. Familiograma
+                                    <AccordionDetailSection title='5. Revision por sistemas'>
+                                        <div>
+                                            <DetailRow label="Piel y fanera" value={selectedPatient?.system_review?.skin} />
+                                            <DetailRow label="Genitourinario" value={selectedPatient?.system_review?.genitourinary} />
+                                            <DetailRow label="Colágeno" value={selectedPatient?.system_review?.collagen} />
+                                            <DetailRow label="Musculoesquelético" value={selectedPatient?.system_review?.musculoskeletal} />
+                                            <DetailRow label="Linfático" value={selectedPatient?.system_review?.lymphatic} />
+                                            <DetailRow label="Alimentación" value={selectedPatient?.system_review?.feeding} />
+                                            <DetailRow label="Auditivo" value={selectedPatient?.system_review?.auditory} />
+                                            <DetailRow label="Sueño" value={selectedPatient?.system_review?.sleep} />
+                                            <DetailRow label="Visual" value={selectedPatient?.system_review?.visual} />
+                                            <DetailRow label="Actividad Física" value={selectedPatient?.system_review?.physical_activity} />
+                                            <DetailRow label="Respiratorio" value={selectedPatient?.system_review?.respiratory} />
+                                            <DetailRow label="Psicosocial" value={selectedPatient?.system_review?.psychosocial} />
+                                            <DetailRow label="Digestivo" value={selectedPatient?.system_review?.digestive} />
+
                                         </div>
-                                    </AccordionHeader>
-                                    <AccordionPanel className='px-10 font-openSans'>
+                                    </AccordionDetailSection>
+                                    <AccordionDetailSection title='6. Familiograma'>
                                         <div>
                                             {selectedPatient?.familiogram}
                                         </div>
-                                    </AccordionPanel>
-                                </AccordionItem>
-                                <AccordionItem value='7'>
-                                    <AccordionHeader>
-                                        <div className='font-roboto font-semibold text-lg'>
-                                            7. Examen fisico
+                                    </AccordionDetailSection>
+                                    <AccordionDetailSection title='7. Examen fisico'>
+                                        <div>
+                                            <div className="grid grid-cols-2 ">
+                                                <DetailGridRow label="F.C" value={selectedPatient?.physical_exam?.heart_rate} />
+                                                <DetailGridRow label="F.R" value={selectedPatient?.physical_exam?.respiratory_rate} customClasses="lg:border-l-0 border-t-0 lg:border-t-2" />
+                                                <DetailGridRow label="T.A" value={selectedPatient?.physical_exam?.blood_pressure} customClasses="lg:border-l-0 border-t-0 border-l-2 lg:border-t-2" />
+                                                <DetailGridRow label="SAT" value={selectedPatient?.physical_exam?.saturation} customClasses="border-t-0" />
+                                                <DetailGridRow label="T" value={selectedPatient?.physical_exam?.heart_rate} customClasses="lg:border-l-0 border-t-0 border-l-2" />
+                                                <DetailGridRow label="Peso" value={selectedPatient?.physical_exam?.weight} customClasses="lg:border-l-0 border-t-0 border-l-2" />
+                                                <DetailGridRow label="Talla" value={selectedPatient?.physical_exam?.size} customClasses="border-t-0" />
+                                                <DetailGridRow label="IMC" value={selectedPatient?.physical_exam?.imc} customClasses="lg:border-l-0 border-t-0 border-l-2" />
+                                            </div>
+                                            <div className='flex flex-row mt-2'>
+                                                <DetailRow label="Examen fisico" value={selectedPatient?.physical_exam.physical_exam} />
+                                            </div>
+
                                         </div>
-                                    </AccordionHeader>
-                                    <AccordionPanel className='px-10 font-openSans'>
-                                        <div className='grid lg:grid-cols-3 grid-cols-1'>
-                                            <div className='grid grid-cols-2 border-2'>
-                                                <div className='font-semibold font-roboto'>F.C</div>
-                                                <div>{selectedPatient?.physical_exam.heart_rate}</div>
-                                            </div>
-                                            <div className='grid grid-cols-2 border-2 lg:border-l-0 border-t-0 lg:border-t-2'>
-                                                <div className='font-semibold font-roboto'>F.R</div>
-                                                <div>{selectedPatient?.physical_exam.respiratory_rate}</div>
-                                            </div>
-                                            <div className='grid grid-cols-2 border-2 lg:border-l-0 border-t-0 border-l-2 lg:border-t-2'>
-                                                <div className='font-semibold font-roboto'>T.A</div>
-                                                <div>{selectedPatient?.physical_exam.blood_pressure}</div>
-                                            </div>
-                                            <div className='grid grid-cols-2 border-2 border-t-0'>
-                                                <div className='font-semibold font-roboto'>SAT</div>
-                                                <div>{selectedPatient?.physical_exam.saturation}</div>
-                                            </div>
-                                            <div className='grid grid-cols-2 border-2  lg:border-l-0 border-t-0 border-l-2'>
-                                                <div className='font-semibold font-roboto'>T</div>
-                                                <div>{selectedPatient?.physical_exam.heart_rate}</div>
-                                            </div>
-                                            <div className='grid grid-cols-2 border-2  lg:border-l-0 border-t-0 border-l-2'>
-                                                <div className='font-semibold font-roboto'>Peso</div>
-                                                <div>{selectedPatient?.physical_exam.weight}</div>
-                                            </div>
-                                            <div className='grid grid-cols-2 border-2 border-t-0'>
-                                                <div className='font-semibold font-roboto'>Talla</div>
-                                                <div>{selectedPatient?.physical_exam.size}</div>
-                                            </div>
-                                            <div className='grid grid-cols-2 border-2  lg:border-l-0 border-t-0 border-l-2'>
-                                                <div className='font-semibold font-roboto'>IMC</div>
-                                                <div>{selectedPatient?.physical_exam.imc}</div>
-                                            </div>
-                                        </div>
-                                        <div className='flex flex-row mt-2 border-2'>
-                                            <div className='font-semibold font-roboto'>Examen fisico</div>
-                                            <div className='pl-3'>{selectedPatient?.physical_exam.physical_exam}</div>
-                                        </div>
-                                    </AccordionPanel>
-                                </AccordionItem>
-                                <AccordionItem value='8'>
-                                    <AccordionHeader>
-                                        <div className='font-roboto font-semibold text-lg'>
-                                            8. Diagnostico
-                                        </div>
-                                    </AccordionHeader>
-                                    <AccordionPanel className='px-10 py-4 font-openSans'>
+                                    </AccordionDetailSection>
+                                    <AccordionDetailSection title='8. Diagnostico'>
                                         {selectedPatient?.diagnosis?.length ? (
                                             <ul className="list-disc  space-y-2">
                                                 {selectedPatient.diagnosis.map((diag, index) => (
@@ -478,15 +207,8 @@ export default function PatientHistory({ selectedPatient, open, setOpen, fetchSe
                                         ) : (
                                             <p className="text-gray-500 italic">No hay diagnosticos</p>
                                         )}
-                                    </AccordionPanel>
-                                </AccordionItem>
-                                <AccordionItem value='9'>
-                                    <AccordionHeader>
-                                        <div className='font-roboto font-semibold text-lg'>
-                                            9. Tratamiento
-                                        </div>
-                                    </AccordionHeader>
-                                    <AccordionPanel className='px-10 py-4 font-openSans'>
+                                    </AccordionDetailSection>
+                                    <AccordionDetailSection title='9. Tratamiento'>
                                         {selectedPatient?.treatment?.length ? (
                                             <ul className="list-disc  space-y-2">
                                                 {selectedPatient.treatment.map((diag, index) => (
@@ -498,15 +220,8 @@ export default function PatientHistory({ selectedPatient, open, setOpen, fetchSe
                                         ) : (
                                             <p className="text-gray-500 italic">No se ingreso un tratamiento</p>
                                         )}
-                                    </AccordionPanel>
-                                </AccordionItem>
-                                <AccordionItem value='10'>
-                                    <AccordionHeader>
-                                        <div className='font-semibold text-lg font-roboto'>
-                                            10. Evolucion
-                                        </div>
-                                    </AccordionHeader>
-                                    <AccordionPanel>
+                                    </AccordionDetailSection>
+                                    <AccordionDetailSection title='10. Evoluciono'>
                                         <div className='px-10 py-4 font-openSans'>
 
                                             <Accordion className="h-full" multiple>
@@ -580,52 +295,54 @@ export default function PatientHistory({ selectedPatient, open, setOpen, fetchSe
 
 
                                         </div>
-                                    </AccordionPanel>
-                                </AccordionItem>
-                                <AccordionItem value='11'>
-                                    <AccordionHeader>
-                                        <div className='font-semibold text-lg font-roboto'>
-                                            11. Paraclinicos
-                                        </div>
-                                    </AccordionHeader>
-                                    <AccordionPanel>
+                                    </AccordionDetailSection>
+                                    <AccordionDetailSection title='11. Paraclinicos'>
                                         <div>
                                             Elementos paraclinicos
                                         </div>
-                                    </AccordionPanel>
-                                </AccordionItem>
+                                    </AccordionDetailSection>
 
-                            </Accordion>
-                            <Dialog open={annotationsDialog} onOpenChange={() => closeDialog()}>
-                                <DialogSurface style={{ width: '50%' }}>
-                                    <DialogBody>
-                                        <DialogTitle>
-                                            <div className="font-roboto font-semibold text-lg">
-                                                Agregar anotación
-                                            </div>
-                                        </DialogTitle>
-                                        <DialogContent>
-                                            <div className="w-full mt-4">
-                                                <Textarea placeholder="Escribe tu anotación aquí..." className="w-full h-32 border rounded-md p-2" onChange={(e) => setNewAnnotation(e.target.value)} value={newAnnotation} />
-                                            </div>
-                                        </DialogContent>
-                                        <DialogActions>
-                                            <Button disabled={newAnnotation === ''} appearance="primary" onClick={() => sendData()}>
-                                                Enviar
-                                            </Button>
-                                            <Button appearance="secondary" onClick={() => closeDialog()}>
-                                                Cerrar
-                                            </Button>
-                                        </DialogActions>
-                                    </DialogBody>
-                                </DialogSurface>
-                            </Dialog>
-                        </div>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button appearance="secondary" onClick={() => setOpen(false)}>Cerrar</Button>
-                    </DialogActions>
-                </DialogBody>
+                                </Accordion>
+                                <Dialog open={annotationsDialog} onOpenChange={() => closeDialog()}>
+                                    <DialogSurface style={{ width: '50%' }}>
+                                        <DialogBody>
+                                            <DialogTitle>
+                                                <div className="font-roboto font-semibold text-lg">
+                                                    Agregar anotación
+                                                </div>
+                                            </DialogTitle>
+                                            <DialogContent>
+                                                <div className="w-full mt-4">
+                                                    <Textarea placeholder="Escribe tu anotación aquí..." className="w-full h-32 border rounded-md p-2" onChange={(e) => setNewAnnotation(e.target.value)} value={newAnnotation} />
+                                                </div>
+                                            </DialogContent>
+                                            <DialogActions>
+                                                <Button disabled={newAnnotation === ''} appearance="primary" onClick={() => sendData()}>
+                                                    Enviar
+                                                </Button>
+                                                <Button appearance="secondary" onClick={() => closeDialog()}>
+                                                    Cerrar
+                                                </Button>
+                                            </DialogActions>
+                                        </DialogBody>
+                                    </DialogSurface>
+                                </Dialog>
+                            </div>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button appearance="secondary" onClick={() => setOpen(false)}>Cerrar</Button>
+                        </DialogActions>
+                    </DialogBody>
+                ) : (
+                    <DialogBody>
+                        <DialogContent>
+                        <Spinner size='extra-large' className='my-12'/>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button appearance="secondary" onClick={() => setOpen(false)}>Cerrar</Button>
+                        </DialogActions>
+                    </DialogBody>
+                )}
             </DialogSurface>
         </Dialog>
     )

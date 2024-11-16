@@ -1,14 +1,5 @@
 import React from 'react';
-import {
-    Input,
-    Button,
-    Menu,
-    MenuTrigger,
-    MenuList,
-    MenuGroupHeader,
-    MenuPopover,
-    MenuItem,
-} from '@fluentui/react-components';
+import { Input,Button,Menu,MenuTrigger,MenuList,MenuGroupHeader,MenuPopover,MenuItem} from '@fluentui/react-components';
 
 interface cie10CodeRequest {
     codigo: string;
@@ -24,14 +15,7 @@ interface InputFieldCie10Props {
     cieValue: string;
 }
 
-export default function InputFieldCie10({
-    id,
-    placeholder,
-    value,
-    handleDatachange,
-    handleCie10Change,
-    cieValue,
-}: InputFieldCie10Props) {
+export default function InputFieldCie10({id,placeholder,value,handleDatachange,handleCie10Change,cieValue,}: InputFieldCie10Props) {
     const [cie10CodeDescriptions, setCie10CodeDescriptions] = React.useState<cie10CodeRequest[]>([]);
 
     const fetchCie10Codes = async (query: string) => {

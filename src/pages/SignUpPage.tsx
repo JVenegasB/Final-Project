@@ -1,25 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Input, Label } from '@fluentui/react-components';
+import { Button } from '@fluentui/react-components';
 import { EyeRegular, EyeOffRegular } from '@fluentui/react-icons';
 import { client } from '../supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useThemeContext } from '../context/themeContext';
+import InputWithLabel from '../components/InputWithLabelProps';
 
 export default function SignUpPage() {
+    //Navigation
     const navigate = useNavigate();
+    //Data to store values
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [repeatPassWord, setRepeatPassword] = useState('');
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
-    const { isDarkMode, } = useThemeContext();
-
+    //Darkmode
+    const { isDarkMode } = useThemeContext();
+    //Validate if a field has been interacted with
     const [touched, setTouched] = useState({
         email: false,
         password: false,
         repeatPassword: false
     });
+    //Handle password images/content and its view
     const [showPassword, setShowPassword] = useState(false);
     const MicButton: React.FC = () => {
         return (
@@ -31,6 +36,7 @@ export default function SignUpPage() {
             />
         )
     }
+    //Handle password repeat images/content and its view
     const [showRepeatPassword, setShowRepeatPassword] = useState(false);
     const RepeatMicButton: React.FC = () => {
         return (
@@ -42,16 +48,18 @@ export default function SignUpPage() {
             />
         )
     }
-
+    //Show error in input fields
     const [errors, setErrors] = useState({
         email: '',
         password: '',
         repeatPassword: ''
     });
-
+    //Validate inputs where filled without errors
     const isFormValid = !errors.email && !errors.password && !errors.repeatPassword && email && password && repeatPassWord && name;
 
+    //Data to signup to auth. If signed, the user is inserted in database
     const sigUpUser = async () => {
+        // Move to edge function
         const { error, data } = await client.auth.signUp({
             email,
             password
@@ -64,6 +72,7 @@ export default function SignUpPage() {
         return data?.session ? data : null;
     }
     const insertUser = async (id: string) => {
+        //Move to edge function
         const { error } = await client.from('users').insert({
             user_id: id,
             email,
@@ -77,8 +86,9 @@ export default function SignUpPage() {
         }
         return true;
     }
-
+    //Process to submut user
     const handleSubmit = async (e: React.FormEvent) => {
+        //Move this to edge function too
         e.preventDefault();
         const authData = await sigUpUser();
         if (!authData || !authData.user) {
@@ -97,7 +107,7 @@ export default function SignUpPage() {
         }
     };
 
-
+    //Show errors 
     const handleInvalidValue = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         let errorMessage = '';
@@ -113,7 +123,7 @@ export default function SignUpPage() {
             [e.target.name]: errorMessage
         }));
     };
-
+    //Function to handle change in values
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setTouched(prevTouched => ({ ...prevTouched, [name]: true }));
@@ -128,7 +138,7 @@ export default function SignUpPage() {
         if (name === 'name') setName(value);
         if (name === 'phone') setPhone(value);
     };
-
+    //Validate if a element has been interacted with and validate errors
     useEffect(() => {
         if (touched.password && touched.repeatPassword) {
             if (password !== repeatPassWord) {
@@ -170,95 +180,28 @@ export default function SignUpPage() {
                     <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                         <div className="space-y-4 rounded-md shadow-sm">
                             <div>
-                                <Label htmlFor="email-address" className="sr-only">
-                                    Correo electrónico
-                                </Label>
-                                <Input
-                                    id="email-address"
-                                    name="email"
-                                    type="email"
-                                    autoComplete="email"
-                                    required
-                                    className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                    placeholder="Correo electrónico"
-                                    value={email}
-                                    onChange={handleChange}
-                                    onInvalid={handleInvalidValue}
-                                />
+                                <InputWithLabel placeholder='Correo Eletronico' name="email" type='email' value={email} required={true} onChange={handleChange} onInvalid={handleInvalidValue} id='email-address' />
+
                                 {touched.email && errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
                             </div>
                             <div>
-                                <label htmlFor="name" className="sr-only">
-                                    Nombre
-                                </label>
-                                <Input
-                                    id="name"
-                                    name="name"
-                                    required
-                                    className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                    placeholder="Ingrese el nombre"
-                                    value={name}
-                                    onChange={handleChange}
-                                />
+                                <InputWithLabel placeholder='Ingrese el nombre' name="name" type='text' value={name} required={true} onChange={handleChange} id='name' />
                             </div>
                             <div>
-                                <label htmlFor="phone" className="sr-only">
-                                    Numero de telefono
-                                </label>
-                                <Input
-                                    id="phone"
-                                    name="phone"
-                                    required
-                                    className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                    placeholder="Ingrese el numero de telefono"
-                                    value={phone}
-                                    onChange={handleChange}
-                                />
+                                <InputWithLabel placeholder='Numero telefonico' name="phone" type='text' value={phone} required={true} onChange={handleChange} onInvalid={handleInvalidValue}  id='phone' />
                             </div>
                             <div>
-                                <label htmlFor="password" className="sr-only">
-                                    Contraseña
-                                </label>
-                                <Input
-                                    id="password"
-                                    name="password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    required
-                                    contentAfter={<MicButton />}
-                                    className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                    placeholder="Ingrese la contraseña"
-                                    value={password}
-                                    onChange={handleChange}
-                                    onInvalid={handleInvalidValue}
-                                />
+                                <InputWithLabel placeholder='Ingrese la contraseña' name="password" type={showPassword ? 'text' : 'password'} value={password} required={true} onChange={handleChange} onInvalid={handleInvalidValue} id='password' contentAfter={<MicButton />} />
                                 {touched.password && errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
                             </div>
 
                             <div>
-                                <label htmlFor="repeatPassword" className="sr-only">
-                                    Repetir contraseña
-                                </label>
-                                <Input
-                                    id="repeatPassword"
-                                    name="repeatPassword"
-                                    type={showRepeatPassword ? 'text' : 'password'}
-                                    contentAfter={<RepeatMicButton />}
-                                    required
-                                    className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                    placeholder="Repetir la contraseña"
-                                    value={repeatPassWord}
-                                    onChange={handleChange}
-                                    onInvalid={handleInvalidValue}
-                                />
+                                <InputWithLabel placeholder='Repetir la contraseña' name="repeatPassword" type={showRepeatPassword ? 'text' : 'password'} value={repeatPassWord} required={true} onChange={handleChange} onInvalid={handleInvalidValue}  id='repeatPassword' contentAfter={<RepeatMicButton />} />
                                 {touched.repeatPassword && errors.repeatPassword && <p className="text-red-500 text-sm">{errors.repeatPassword}</p>}
                             </div>
                         </div>
                         <div className='flex flex-col justify-center items-end font-lato '>
-                            <Button
-                                type="submit"
-                                className="group relative font-openSans w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                disabled={!isFormValid}
-                            >
+                            <Button type="submit" className="w-full" disabled={!isFormValid}>
                                 Ingresar
                             </Button>
                         </div>

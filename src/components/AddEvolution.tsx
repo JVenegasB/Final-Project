@@ -10,9 +10,11 @@ interface Props {
     setAddEvolutionComponent: (value: string) => void;
     fetchPatientAndOpenDialog: (patient_id: number) => void;
     clearPatientCache: (patient_id: number) => void;
+    fetchFinishLaterEvolutions: () => void;
 }
 
-export default function AddEvolution({ patientData, setAddEvolutionComponent, fetchPatientAndOpenDialog, clearPatientCache }: Props) {
+export default function AddEvolution({ patientData, setAddEvolutionComponent, fetchPatientAndOpenDialog, clearPatientCache,fetchFinishLaterEvolutions }: Props) {
+    //Store form data
     const [formData, setFormData] = useState<EvolutionType>({
         attended_date: '',
         current_illness: '',
@@ -25,7 +27,7 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent, fe
         plan: '',
         therapy: ''
     });
-
+    //Function to handle input change
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData({
@@ -33,6 +35,7 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent, fe
             [name]: value
         });
     }
+    //Function to show alternative therapy
     const showAlternative = () => {
         setFormData({
             ...formData,
@@ -40,7 +43,7 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent, fe
             therapy: ''
         });
     }
-
+    //Set current date
     useEffect(() => {
         const currentDate = new Date();
         const formattedDate = currentDate.toISOString().split('T')[0]; // Extracts just the yyyy-MM-dd part
@@ -49,7 +52,7 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent, fe
             attended_date: formattedDate
         }));
     }, []);
-
+    //Submit evolution
     const submitEvolution = async (data: EvolutionType) => {
         const url = 'http://127.0.0.1:54321/functions/v1/create-evolution';
         try {
@@ -75,6 +78,7 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent, fe
                     plan: '',
                     therapy: ''
                 })
+                fetchFinishLaterEvolutions()
             }
         } catch (err) {
             console.error('Error submitting evolution:', err);
@@ -82,17 +86,19 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent, fe
         console.log("Enviando evolucion medica: ", data);
         clearPatientCache(data.patient_id);
     }
-
+    //Handle submit
     const handleSubmit = () => {
         const dataToSend = { ...formData, is_finish_later: false };
         setFormData(dataToSend)
         submitEvolution(dataToSend);
     }
+    //Handle submit later
     const handleSubmitLater = () => {
         const dataToSend = { ...formData, is_finish_later: true };
         setFormData(dataToSend)
         submitEvolution(dataToSend);
     }
+    //Check if form is valid and enable buttons
     const [isFormValid, setIsFormValid] = useState(false);
     const [isFormFilled, setIsFormFilled] = useState(false);
     useEffect(() => {
@@ -116,10 +122,11 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent, fe
         setIsFormValid(!hasEmptyFields(formData));
     }, [formData]);
 
+    //Handle patient details
     const handlePatientDetails = () => {
         fetchPatientAndOpenDialog(patientData?.patient_id || 0);
     }
-
+    //Return to main page
     const returnToMainPage = () => {
         setAddEvolutionComponent("list");
     }

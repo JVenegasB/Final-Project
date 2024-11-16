@@ -9,7 +9,8 @@ import { Session } from '@supabase/supabase-js';
 import SettingsComponent from './SettingsComponent.tsx';
 import MainElementPage from './MainElementPage.tsx';
 import { useClinicContext } from '../context/clinicContext.ts';
-import { useUserContext }   from '../context/userContext.ts';
+import { useUserContext } from '../context/userContext.ts';
+import { EvolutionToComplete, PatientMainData } from '../types/types.ts';
 
 interface JoinRequestType {
     id: number;
@@ -23,12 +24,18 @@ interface clinic {
     name: string
 }
 export default function Header() {
+    //Navigation and context
     const navigate = useNavigate();
     const [loggedUser, setLoggedUser] = useUserContext();
     const [clinic, setClinic] = useClinicContext();
     const [isClinicMember, setIsClinicMember] = useState<boolean | null>(null);
     const [userJoinRequests, setUserJoinRequests] = useState<JoinRequestType[]>([]);
-
+    useEffect(() => {
+        if (clinic) {
+            fetchPatientList();
+            fetchFinishLaterEvolutions();
+        }
+    }, [clinic])
     const fetchClinicUserData = async (session: Session) => {
         const { data: clinic_user, error } = await client.from('clinic_users').select('*').eq('user_id', session?.user.id).single();
         if (error) {
@@ -124,38 +131,74 @@ export default function Header() {
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
     };
-    const renderTabContent = () => {
-        switch (activeTab) {
 
-            case 'pacientesElement':
-                return (
-                    <PatientsPage />
-                );
-            case 'settingsElement':
-                return (
-
-                    <SettingsComponent isClinicMember={isClinicMember}/>
-
-                );
-            case 'mainElement':
-                return (
-                    <MainElementPage isClinicMember={isClinicMember} userJoinRequests={userJoinRequests} userSession={userSession ?? null} userName={loggedUser?.name} />
-                )
-            default:
-                return (
-                    <div className={`h-full m-3 ${isDarkMode ? "bg-thirdBgDark" : "bg-white"} `}>
-                        <div className='flex flex-col justify-center items-center'>
-                            <h1 className='text-3xl font-bold my-10'>Cargando datos</h1>
-                            <Spinner size='extra-large' />
-                        </div>
-                    </div>
-                );
-        }
-    };
     const signOut = async () => {
         setLoggedUser(null);
         setClinic(null);
         await client.auth.signOut();
+    }
+    const [patientData, setPatientData] = useState<PatientMainData[]>([]);
+    const fetchPatientList = async () => {
+        if (clinic === null) {
+            console.error('No clinic data found');
+            return;
+        }
+        const url = `http://127.0.0.1:54321/functions/v1/fetchMainUserData?clinicid=${clinic.id}`;
+        try {
+            console.log('Fetching patient list from service');
+            const res = await fetch(url, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+            })
+            const data = await res.json();
+            const modifiedData = data.map((prevData: PatientMainData) => ({
+                ...prevData,
+                first_session: prevData.first_session.split('T')[0],
+                last_session: prevData.last_session.split('T')[0]
+            }))
+            setPatientData(modifiedData);
+        } catch (err) {
+            console.error('Error fetching patient list:', err);
+        }
+    }
+
+    useEffect(() => {
+        setIsFinishLaterHistory([]);
+        if (patientData.length > 0) {
+            filterIsFinishLater(patientData);
+        }
+    }, [patientData])
+    const [isFinishLaterHistory, setIsFinishLaterHistory] = useState<PatientMainData[]>([]);
+    const [isFinishLaterEvolution, setIsFinishLaterEvolution] = useState<EvolutionToComplete[]>([]);
+
+
+    //filter isFinishLater patients
+    const filterIsFinishLater = async (data: PatientMainData[]) => {
+        const filteredPatients = data.filter((patient) => patient.is_finish_later === true);
+        setIsFinishLaterHistory((prevHistory) => [...prevHistory, ...filteredPatients]);
+    };
+
+    //filter isFinishLater evolutions
+    const fetchFinishLaterEvolutions = async () => {
+        if (clinic === null) {
+            console.error('No clinic data found');
+            return;
+        }
+        const url = `http://127.0.0.1:54321/functions/v1/fetch_unfinished_evolutions?clinic_id=${clinic.id}`;
+        try {
+            const res = await fetch(url, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+            })
+            const data = await res.json();
+            const modifiedData = data.map((prevData: EvolutionToComplete) => ({
+                ...prevData,
+                attended_date: prevData.attended_date.split('T')[0]
+            }))
+            setIsFinishLaterEvolution(modifiedData);
+        } catch (err) {
+            console.error('Error fetching unfinished evolutions:', err);
+        }
     }
     return (
         <div className="flex flex-col max-h-screen">
@@ -213,7 +256,41 @@ export default function Header() {
                     </div>
                 </div>
                 <div className={`flex flex-grow flex-col w-full ${isDarkMode ? "bg-secondaryBgDark" : "bg-secondaryBgLight"} lg:h-[calc(100vh-96px)] h-[calc(100vh-38px)] overflow-y-auto`}>
-                    {renderTabContent()}
+                    {(() => {
+                        switch (activeTab) {
+                            case 'pacientesElement':
+                                return (
+                                    <PatientsPage
+                                        fetchPatientList={fetchPatientList}
+                                        patientData={patientData}
+                                        setPatientData={setPatientData}
+                                        isFinishLaterEvolution={isFinishLaterEvolution}
+                                        isFinishLaterHistory={isFinishLaterHistory}
+                                        fetchFinishLaterEvolutions={fetchFinishLaterEvolutions}
+                                        />
+                                );
+                            case 'settingsElement':
+                                return <SettingsComponent isClinicMember={isClinicMember} />;
+                            case 'mainElement':
+                                return (
+                                    <MainElementPage
+                                        isClinicMember={isClinicMember}
+                                        userJoinRequests={userJoinRequests}
+                                        userSession={userSession ?? null}
+                                        userName={loggedUser?.name}
+                                    />
+                                );
+                            default:
+                                return (
+                                    <div className={`h-full m-3 ${isDarkMode ? 'bg-thirdBgDark' : 'bg-white'} `}>
+                                        <div className="flex flex-col justify-center items-center">
+                                            <h1 className="text-3xl font-bold my-10">Cargando datos</h1>
+                                            <Spinner size="extra-large" />
+                                        </div>
+                                    </div>
+                                );
+                        }
+                    })()}
                 </div>
             </div>
         </div>
