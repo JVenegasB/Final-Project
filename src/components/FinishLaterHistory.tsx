@@ -310,6 +310,8 @@ export default function FinishLaterHistory({ isFinishLaterHistory, fetchPatientL
                     </TableRow>
                 </TableHeader>
                 <TableBody>
+                {isFinishLaterHistory === null && <TableRow><TableCell colSpan={3}><Spinner size='extra-large' className='my-12' /></TableCell></TableRow>}
+                {isFinishLaterHistory.length === 0 && <TableRow><TableCell colSpan={3}>No hay historyas pendientes</TableCell></TableRow>}
                     {rows.map(({ item }, index) => (
                         <TableRow key={index} onClick={() => openDialog(item.patient_id)}>
                             <TableCell>{item.name}</TableCell>

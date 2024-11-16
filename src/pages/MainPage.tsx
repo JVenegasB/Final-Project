@@ -278,6 +278,11 @@ export default function Header() {
                                         userJoinRequests={userJoinRequests}
                                         userSession={userSession ?? null}
                                         userName={loggedUser?.name}
+                                        fetchPatientList={fetchPatientList}
+                                        setPatientData={setPatientData}
+                                        isFinishLaterEvolution={isFinishLaterEvolution}
+                                        isFinishLaterHistory={isFinishLaterHistory}
+                                        fetchFinishLaterEvolutions={fetchFinishLaterEvolutions}
                                     />
                                 );
                             default:
@@ -293,6 +298,7 @@ export default function Header() {
                     })()}
                 </div>
             </div>
+            
         </div>
 
     );

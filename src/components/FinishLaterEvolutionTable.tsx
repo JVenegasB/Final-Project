@@ -44,7 +44,7 @@ export default function FinishLaterEvolutionTable({ isFinishLaterEvolution, fetc
         },
         sortDirection: getSortDirection(columnId),
     });
-    const rows = sort(getRows());  
+    const rows = sort(getRows());
 
     //Dialog Controls
     const [open, setOpen] = useState(false);
@@ -78,19 +78,39 @@ export default function FinishLaterEvolutionTable({ isFinishLaterEvolution, fetc
         setOpen(true);
     }
 
-    function sendData(): void {
-        console.log(formData)
-        setOpen(false);
-        setFormData(null);
-        setFormDataMirror(null);
-        setIsComplete(false);
+    async function sendData(): Promise<void> {
+        const dataToSend = {
+            ...formData,
+            is_finish_later: false,
+        }
+        const url = 'http://127.0.0.1:54321/functions/v1/update_evolution';
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(dataToSend),
+            })
+            if (res.ok) {
+                setOpen(false);
+                setFormData(null);
+                setFormDataMirror(null);
+                setIsComplete(false);
+                fetchFinishLaterEvolutions()
+            } else {
+                console.log('Failed to update evolution')
+            }
+        } catch (error) {
+            console.log(error)
+        }
+
     }
 
     function closeDialog(): void {
         setOpen(false);
         setFormData(null);
         setIsComplete(false);
-        fetchFinishLaterEvolutions()
     }
 
     const handleDataChange = (input: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -118,7 +138,7 @@ export default function FinishLaterEvolutionTable({ isFinishLaterEvolution, fetc
             return null;
         });
     }
-    
+
     return (
         <div>
             <Table>
@@ -130,6 +150,8 @@ export default function FinishLaterEvolutionTable({ isFinishLaterEvolution, fetc
                     </TableRow>
                 </TableHeader>
                 <TableBody>
+                    {isFinishLaterEvolution === null && <TableRow><TableCell colSpan={3}><Spinner size='extra-large' className='my-12' /></TableCell></TableRow>}
+                    {isFinishLaterEvolution.length === 0 && <TableRow><TableCell colSpan={3}>No hay evoluciones pendientes</TableCell></TableRow>}
                     {rows.map(({ item }, index) => (
                         <TableRow key={index} onClick={() => selectEvolution(item)}>
                             <TableCell>{item.id}</TableCell>
@@ -158,7 +180,7 @@ export default function FinishLaterEvolutionTable({ isFinishLaterEvolution, fetc
                                     <TextFieldToComplete input={formData.therapy} isComplete={formDataMirror?.therapy !== '' && formDataMirror?.therapy !== null} label='Terapia' handleDataChange={handleDataChange} id='therapy' />
                                 }
                             </DialogContent>
-                        ) : (<DialogContent className='space-y-5'><Spinner size='extra-large' className='my-12'/></DialogContent>)}
+                        ) : (<DialogContent className='space-y-5'><Spinner size='extra-large' className='my-12' /></DialogContent>)}
                         <DialogActions>
                             <Button onClick={() => closeDialog()} appearance='secondary'>Cerrar</Button>
                             <Button appearance='primary' onClick={() => sendData()} disabled={!isComplete}>Enviar</Button>
