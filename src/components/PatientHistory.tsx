@@ -1,11 +1,11 @@
-// import { DocumentPdfRegular } from '@fluentui/react-icons';
 import { Accordion, AccordionItem, AccordionHeader, AccordionPanel, Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Textarea, Spinner } from '@fluentui/react-components';
 import { PatientSummary } from '../types/types.ts'
 import { AddCircle24Regular } from '@fluentui/react-icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AccordionDetailSection from './AccordionDetailSection.tsx';
 import DetailRow from './DetailRow.tsx';
 import { DetailGridRow } from './DetailedGridRow.tsx'
+import { client } from '../supabase/client';
 
 interface Props {
     selectedPatient: PatientSummary | null;
@@ -35,31 +35,35 @@ export default function PatientHistory({ selectedPatient, open, setOpen, fetchSe
     }
     //Send annotation related to a evolution
     const sendData = async () => {
-        const currentDate = new Date().toISOString();
-        const url = 'http://127.0.0.1:54321/functions/v1/add-annotation'
-        const data = {
-            description: newAnnotation,
+        const currentDate = new Date();
+        const localISOTime = new Date(
+            currentDate.getTime() - currentDate.getTimezoneOffset() * 60000
+        ).toISOString();
+        const { error } = await client.from('annotations').insert({
             evolution_id: evolutionId,
-            created_at: currentDate
-        }
-        try {
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            })
-            console.log('response', res);
+            description: newAnnotation,
+            created_at: localISOTime
+        })
+        if (error) {
+            console.error('Error sending annotation:', error)
+        } else {
             closeDialog();
-        } catch (err) {
-            console.error('Error sending annotation:', err);
+            setAnnotationsDialog(false);
+            setNewAnnotation('');
+            setEvolutionId(0);
+            fetchSelectedPatientDetails(selectedPatientId || 0, true);
         }
-
-        setAnnotationsDialog(false);
-        setNewAnnotation('');
-        setEvolutionId(0);
-        console.log('Selected stuff', selectedPatientId)
-        fetchSelectedPatientDetails(selectedPatientId || 0, true);
     }
+    const [date, setDate] = useState('');
+    const [time, setTime] = useState('');
+
+    useEffect(() => {
+        if (selectedPatient?.first_session) {
+            const date = new Date(selectedPatient.first_session);
+            setDate(date.toLocaleDateString());
+            setTime(date.toLocaleTimeString());
+        }
+    }, [selectedPatient])
 
     return (
         <Dialog open={open} >
@@ -83,7 +87,7 @@ export default function PatientHistory({ selectedPatient, open, setOpen, fetchSe
                                 <Accordion className="h-full" multiple>
                                     <AccordionDetailSection title='0. Datos del paciente'>
                                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                            <DetailRow label="Fecha" value={selectedPatient?.first_session} />
+                                            <DetailRow label="Fecha" value={`${date} Hora: ${time}`} />
                                             <DetailRow label="Doctor" value={selectedPatient?.doctor} />
                                             <DetailRow label="Nombre" value={selectedPatient?.name} />
                                             <DetailRow label="Edad" value={selectedPatient?.age} />
@@ -221,7 +225,7 @@ export default function PatientHistory({ selectedPatient, open, setOpen, fetchSe
                                             <p className="text-gray-500 italic">No se ingreso un tratamiento</p>
                                         )}
                                     </AccordionDetailSection>
-                                    <AccordionDetailSection title='10. Evoluciono'>
+                                    <AccordionDetailSection title='10. Evolucion'>
                                         <div className='px-10 py-4 font-openSans'>
 
                                             <Accordion className="h-full" multiple>
@@ -268,7 +272,7 @@ export default function PatientHistory({ selectedPatient, open, setOpen, fetchSe
                                                                         {evolution.annotations.map((annotation, index) => (
                                                                             <AccordionItem key={index} value={index.toString()}>
                                                                                 <AccordionHeader>
-                                                                                    Fecha de anotacion: {annotation.created_at}
+                                                                                    Fecha de anotacion: {annotation.date}
                                                                                 </AccordionHeader>
                                                                                 <AccordionPanel>
                                                                                     <div className='flex flex-row'>
@@ -284,7 +288,7 @@ export default function PatientHistory({ selectedPatient, open, setOpen, fetchSe
                                                                         <p className="text-gray-500 italic">No hay anotaciones</p>
                                                                     </div>
                                                                 )}
-                                                                {evolution.evolution_id !== undefined && (<Button icon={<AddCircle24Regular />} onClick={() => showDialog(evolution.evolution_id ?? 0)}>Agregar observacion</Button>)}
+                                                                {evolution.evolution_id !== undefined && (<Button icon={<AddCircle24Regular />} onClick={() => showDialog(evolution.evolution_id ?? 0)}>Agregar anotacion</Button>)}
                                                             </AccordionPanel>
                                                         </AccordionItem>
                                                     ))
@@ -336,7 +340,7 @@ export default function PatientHistory({ selectedPatient, open, setOpen, fetchSe
                 ) : (
                     <DialogBody>
                         <DialogContent>
-                        <Spinner size='extra-large' className='my-12'/>
+                            <Spinner size='extra-large' className='my-12' />
                         </DialogContent>
                         <DialogActions>
                             <Button appearance="secondary" onClick={() => setOpen(false)}>Cerrar</Button>

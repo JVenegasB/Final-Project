@@ -91,17 +91,23 @@ export default function NewPatient({fetchPatientList}: NewPatientProps) {
     const [loggedUser] = useUserContext();
     // Initialize the form with clinic and doctor information
     useEffect(() => {
-        const currentDate = new Date().toISOString();
+        const currentDate = new Date();
+        const localISOTime = new Date(
+            currentDate.getTime() - currentDate.getTimezoneOffset() * 60000
+        ).toISOString();
+    
         setFormData((prevData) => ({
             ...prevData,
-            first_session: currentDate,
-            last_session: currentDate,
+            first_session: localISOTime,
+            last_session: localISOTime,
             personal_background: {
                 ...prevData.personal_background,
                 isGinecoObstetric: false,
             },
         }));
     }, []);
+    
+    
     //Fill clinic_id and doctor fields
     useEffect(() => {
         if (clinic) {
@@ -369,7 +375,6 @@ export default function NewPatient({fetchPatientList}: NewPatientProps) {
     const sendLater = async () => {
         const updatedData = { ...formData, is_finish_later: true };
         setFormData(updatedData);
-        console.log(updatedData)
         const url = 'http://127.0.0.1:54321/functions/v1/create-patient';
         try {
             //post

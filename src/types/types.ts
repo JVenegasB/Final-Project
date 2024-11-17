@@ -105,6 +105,7 @@ export interface EvolutionType{
     description: string,
     evolution_id: number,
     created_at: string,
+    date?: string,
   }[];
 }
 export interface EvolutionToComplete {

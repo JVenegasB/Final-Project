@@ -4,6 +4,7 @@ import { ArrowLeft20Regular, Save20Regular, SaveArrowRight20Regular, ContentView
 import { PatientMainData } from "../types/types";
 import ConfirmationDialogs from "./ConfirmationDialogs";
 import { EvolutionType } from "../types/types";
+import { client } from '../supabase/client';
 
 interface Props {
     patientData: PatientMainData | null;
@@ -13,7 +14,7 @@ interface Props {
     fetchFinishLaterEvolutions: () => void;
 }
 
-export default function AddEvolution({ patientData, setAddEvolutionComponent, fetchPatientAndOpenDialog, clearPatientCache,fetchFinishLaterEvolutions }: Props) {
+export default function AddEvolution({ patientData, setAddEvolutionComponent, fetchPatientAndOpenDialog, clearPatientCache, fetchFinishLaterEvolutions }: Props) {
     //Store form data
     const [formData, setFormData] = useState<EvolutionType>({
         attended_date: '',
@@ -54,37 +55,37 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent, fe
     }, []);
     //Submit evolution
     const submitEvolution = async (data: EvolutionType) => {
-        const url = 'http://127.0.0.1:54321/functions/v1/create-evolution';
-        try {
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+        const { error } = await client.rpc("add_patient_evolution", {
+            attended_date: data.attended_date,
+            current_illness: data.current_illness,
+            diagnosis: data.diagnosis,
+            is_alternative: data.is_alternative,
+            is_finish_later: data.is_finish_later,
+            motive: data.motive,
+            patient_id: data.patient_id,
+            physical_exam: data.physical_exam,
+            plan: data.plan,
+            therapy: data.therapy,
+        });
+        if (error) {
+            console.error('Error submitting evolution:', error);
+            return;
+        } else {
+            setFormData({
+                attended_date: '',
+                current_illness: '',
+                diagnosis: '',
+                is_alternative: false,
+                is_finish_later: false,
+                motive: '',
+                patient_id: patientData?.patient_id || 0,
+                physical_exam: '',
+                plan: '',
+                therapy: ''
             })
-            if (!res.ok) {
-                console.error('Error submitting evolution:', res.statusText);
-                console.log(res)
-                return;
-            } else {
-                setFormData({
-                    attended_date: '',
-                    current_illness: '',
-                    diagnosis: '',
-                    is_alternative: false,
-                    is_finish_later: false,
-                    motive: '',
-                    patient_id: patientData?.patient_id || 0,
-                    physical_exam: '',
-                    plan: '',
-                    therapy: ''
-                })
-                fetchFinishLaterEvolutions()
-            }
-        } catch (err) {
-            console.error('Error submitting evolution:', err);
+            fetchFinishLaterEvolutions();
+            clearPatientCache(data.patient_id);
         }
-        console.log("Enviando evolucion medica: ", data);
-        clearPatientCache(data.patient_id);
     }
     //Handle submit
     const handleSubmit = () => {

@@ -3,7 +3,7 @@ import { TableColumnDefinition, Spinner, createTableColumn, useTableFeatures, us
 import { EvolutionToComplete, EvolutionType } from '../types/types';
 import TextFieldToComplete from './TextFieldToComplete';
 import InputFieldToComplete from './InputFieldToComplete';
-
+import { client } from '../supabase/client'
 
 const columns: TableColumnDefinition<EvolutionToComplete>[] = [
     createTableColumn<EvolutionToComplete>({
@@ -83,28 +83,29 @@ export default function FinishLaterEvolutionTable({ isFinishLaterEvolution, fetc
             ...formData,
             is_finish_later: false,
         }
-        const url = 'http://127.0.0.1:54321/functions/v1/update_evolution';
-        try {
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(dataToSend),
+        const { data, error } = await client
+            .rpc('update_evolution', {
+                current_illness: dataToSend.current_illness,
+                diagnosis: dataToSend.diagnosis,
+                id: dataToSend.evolution_id,
+                is_alternative: dataToSend.is_alternative,
+                is_finish_later: dataToSend.is_finish_later,
+                motive: dataToSend.motive,
+                physical_exam: dataToSend.physical_exam,
+                plan: dataToSend.plan,
+                therapy: dataToSend.therapy,
             })
-            if (res.ok) {
-                setOpen(false);
-                setFormData(null);
-                setFormDataMirror(null);
-                setIsComplete(false);
-                fetchFinishLaterEvolutions()
-            } else {
-                console.log('Failed to update evolution')
-            }
-        } catch (error) {
-            console.log(error)
+        if (error) {
+            console.error('Error updating evolution:', error)
+            return
+        } else {
+            console.log('Evolucion completada correctamente',data)
+            setOpen(false);
+            setFormData(null);
+            setFormDataMirror(null);
+            setIsComplete(false);
+            fetchFinishLaterEvolutions()
         }
-
     }
 
     function closeDialog(): void {

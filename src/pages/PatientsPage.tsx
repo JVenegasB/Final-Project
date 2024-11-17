@@ -55,8 +55,8 @@ export default function PatientsPage({ fetchPatientList, patientData, /*setPatie
             //Format patients data
             const modifiedData = data.map((prevData: PatientSummary) => ({
                 ...prevData,
-                first_session: prevData.first_session?.split('T')[0],
-                last_session: prevData.last_session?.split('T')[0],
+                first_session: prevData.first_session,
+                last_session: prevData.last_session,
                 evolution: Array.isArray(prevData.evolution)
                     ? prevData.evolution.map(evo => ({
                         ...evo,

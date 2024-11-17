@@ -100,13 +100,16 @@ export default function SettingsComponent({ isClinicMember }: SettingsComponentP
     }
   }
 
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+};
   return (
     <div className={`h-full m-3 ${isDarkMode ? "bg-thirdBgDark" : "bg-white"} max-h-[calc(100vh-90px)] overflow-y-auto`}>
       <h1 className={`text-4xl font-bold font-roboto p-5 ${isDarkMode ? "text-white" : "text-blue-900"}`}>Configuraciones</h1>
       <div className="grid lg:grid-cols-2 grid-cols-1 ">
         <div className={`m-3 p-3 ${isDarkMode ? "bg-secondaryBgDark" : "bg-secondaryBgLight"} rounded-md ${!(isClinicMember && user?.role === 'admin') && 'col-span-full'}`}>
           <h2 className='my-3 font-roboto text-2xl'>Tema</h2>
-          <Switch labelPosition="before" label={`${isDarkMode ? 'Modo oscuro' : 'Modo claro'}`} onChange={() => setIsDarkMode(!isDarkMode)} />
+          <Switch labelPosition="before" label={`${isDarkMode ? 'Modo oscuro' : 'Modo claro'}`} onChange={toggleDarkMode} checked={!isDarkMode}/>
         </div>
 
         <div className={`m-3 p-3 ${isDarkMode ? "bg-secondaryBgDark" : "bg-secondaryBgLight"} rounded-md ${!(isClinicMember && user?.role === 'admin') && 'col-span-full'}`}>
