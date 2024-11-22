@@ -89,18 +89,18 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 10,
         right: 20,
-        width: 95, 
+        width: 95,
         height: 47,
-        marginRight:10
+        marginRight: 10
     }
 });
 
 // PDF Component
-export default function PDFComplete({ patientData,clinicLogo }: PDFCompleteProps) {
+export default function PDFComplete({ patientData, clinicLogo }: PDFCompleteProps) {
     return (
         <Document>
             <Page style={styles.page}>
-                {clinicLogo && <Image src={clinicLogo} style={styles.image}/>}
+                {clinicLogo && <Image src={clinicLogo} style={styles.image} />}
                 <Text style={styles.header}>Historia Clínica</Text>
                 <Text style={styles.subtitle}>Datos personales</Text>
 
