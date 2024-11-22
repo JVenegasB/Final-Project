@@ -3,6 +3,7 @@ import { PatientSummary } from '../../types/types';
 
 type PDFSummaryProps = {
     patientData: PatientSummary | null;
+    clinicLogo: string | null;
 };
 
 export default function PDFSummary({ patientData}: PDFSummaryProps) {

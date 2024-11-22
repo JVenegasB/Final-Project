@@ -1,4 +1,4 @@
-import { Button, Input, Label, Textarea } from "@fluentui/react-components";
+import { Button, Input, Label, Textarea, useToastController, Toast, ToastTitle, ToastBody, ToastIntent } from "@fluentui/react-components";
 import { useEffect, useState } from "react";
 import { ArrowLeft20Regular, Save20Regular, SaveArrowRight20Regular, ContentView20Regular, AddCircle20Regular } from '@fluentui/react-icons';
 import { PatientMainData } from "../types/types";
@@ -12,9 +12,22 @@ interface Props {
     fetchPatientAndOpenDialog: (patient_id: number) => void;
     clearPatientCache: (patient_id: number) => void;
     fetchFinishLaterEvolutions: () => void;
+    setChangeViewPatientContent: (value: string) => void;
 }
 
-export default function AddEvolution({ patientData, setAddEvolutionComponent, fetchPatientAndOpenDialog, clearPatientCache, fetchFinishLaterEvolutions }: Props) {
+export default function AddEvolution({ patientData, setAddEvolutionComponent, fetchPatientAndOpenDialog, clearPatientCache, fetchFinishLaterEvolutions,setChangeViewPatientContent }: Props) {
+    //Toaster
+    const { dispatchToast } = useToastController("global-toaster");
+    const showToast = (title: string, description: string, intent: ToastIntent) => {
+        dispatchToast(
+            <Toast>
+                <ToastTitle >{title}</ToastTitle>
+                <ToastBody>{description}</ToastBody>
+
+            </Toast>,
+            { position: "top-end", intent }
+        )
+    }
     //Store form data
     const [formData, setFormData] = useState<EvolutionType>({
         attended_date: '',
@@ -47,10 +60,12 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent, fe
     //Set current date
     useEffect(() => {
         const currentDate = new Date();
-        const formattedDate = currentDate.toISOString().split('T')[0]; // Extracts just the yyyy-MM-dd part
+        const localISOTime = new Date(
+            currentDate.getTime() - currentDate.getTimezoneOffset() * 60000
+        ).toISOString().slice(0, 16);
         setFormData((prevData) => ({
             ...prevData,
-            attended_date: formattedDate
+            attended_date: localISOTime
         }));
     }, []);
     //Submit evolution
@@ -69,8 +84,10 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent, fe
         });
         if (error) {
             console.error('Error submitting evolution:', error);
+            showToast('Error', 'No se pudo enviar la evolucion', 'error')
             return;
         } else {
+            showToast('Evolucion enviada', 'La evolucion se envio correctamente', 'success')
             setFormData({
                 attended_date: '',
                 current_illness: '',
@@ -85,6 +102,7 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent, fe
             })
             fetchFinishLaterEvolutions();
             clearPatientCache(data.patient_id);
+            setChangeViewPatientContent('list');
         }
     }
     //Handle submit
@@ -119,7 +137,6 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent, fe
         if (formData.attended_date !== '') {
             setIsFormFilled(true);
         }
-        console.log(formData)
         setIsFormValid(!hasEmptyFields(formData));
     }, [formData]);
 
@@ -133,13 +150,12 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent, fe
     }
     return (
         <div className="flex flex-col flex-grow h-full w-full px-5">
-
             <div className="flex overflow-x-auto w-full">
 
 
                 <ConfirmationDialogs props={{ valid: true, buttonDescription: 'Volver', description: 'Esta seguro que desea volver? los cambios no se guardaran a menos que los envie', mainButtonText: 'Volver a la lista de pacientes', secondaryButtonText: "Seguir con la evolucion", title: 'Confirmacion de retorno', mainFunction: returnToMainPage, icon: (<ArrowLeft20Regular />) }} />
                 <ConfirmationDialogs props={{ valid: isFormValid, mainFunction: handleSubmit, buttonDescription: 'Guardar', description: 'Esta seguro que desea enviar la evolucion medica? Una vez enviada no podra ser modificada', mainButtonText: 'Enviar', title: 'Confirmacion de envio de Evolucion', secondaryButtonText: 'Volver', icon: (<Save20Regular />) }} />
-                <ConfirmationDialogs props={{ valid: isFormFilled, buttonDescription: 'Continuar mas tarde', description: '¿Estás seguro de que deseas guardar la evolución y continuar más tarde? Esto solo se puede hacer una vez', mainButtonText: 'Enviar para continuar mas tarde', mainFunction: handleSubmitLater, secondaryButtonText: 'Volver', title: 'Confirmacion para continuar mas tarde', icon: (<SaveArrowRight20Regular />) }} />
+                <ConfirmationDialogs props={{ valid: isFormFilled, buttonDescription: 'Continuar mas tarde', description: '¿Estás seguro de que deseas guardar la evolución y continuar más tarde? Esto solo se puede hacer una vez y no podra modificar los campos que ya fueron llenados', mainButtonText: 'Enviar para continuar mas tarde', mainFunction: handleSubmitLater, secondaryButtonText: 'Volver', title: 'Confirmacion para continuar mas tarde', icon: (<SaveArrowRight20Regular />) }} />
 
                 <Button
                     onClick={handlePatientDetails}
@@ -163,7 +179,7 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent, fe
                 <div className="flex flex-col mt-5">
                     <Label htmlFor="attended_date">Fecha:</Label>
                     <Input
-                        type="date"
+                        type="datetime-local"
                         name="attended_date"
                         id="attended_date"
                         value={formData.attended_date}

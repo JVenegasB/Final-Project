@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { TableColumnDefinition, Spinner, createTableColumn, useTableFeatures, useTableSort, TableColumnId, Table, TableHeader, TableHeaderCell, TableRow, TableBody, TableCell, Dialog, DialogContent, DialogBody, DialogTitle, DialogSurface, DialogActions, Button, Checkbox } from "@fluentui/react-components";
+import { TableColumnDefinition, Spinner, createTableColumn, useTableFeatures, useTableSort, TableColumnId, Table, TableHeader, TableHeaderCell, TableRow, TableBody, TableCell, Dialog, DialogContent, DialogBody, DialogTitle, DialogSurface, DialogActions, Button, Checkbox, useToastController, Toast, ToastTitle, ToastBody, ToastIntent } from "@fluentui/react-components";
 import { EvolutionToComplete, EvolutionType } from '../types/types';
 import TextFieldToComplete from './TextFieldToComplete';
 import InputFieldToComplete from './InputFieldToComplete';
 import { client } from '../supabase/client'
+import { useLoadingIncEvHistContext } from '../context/loadingIncEvHistContext'
 
 const columns: TableColumnDefinition<EvolutionToComplete>[] = [
     createTableColumn<EvolutionToComplete>({
@@ -26,6 +27,18 @@ interface Props {
 }
 
 export default function FinishLaterEvolutionTable({ isFinishLaterEvolution, fetchFinishLaterEvolutions }: Props) {
+    //Toaster
+    const { dispatchToast } = useToastController("global-toaster");
+    const showToast = (title: string, description: string, intent: ToastIntent) => {
+        dispatchToast(
+            <Toast>
+                <ToastTitle >{title}</ToastTitle>
+                <ToastBody>{description}</ToastBody>
+
+            </Toast>,
+            { position: "top-end", intent }
+        )
+    }
     const {
         getRows,
         sort: { getSortDirection, toggleColumnSort, sort },
@@ -38,6 +51,9 @@ export default function FinishLaterEvolutionTable({ isFinishLaterEvolution, fetc
             defaultSortState: { sortColumn: "file", sortDirection: "ascending" },
         })]
     );
+
+    const [isLoading,] = useLoadingIncEvHistContext();
+
     const headerSortProps = (columnId: TableColumnId) => ({
         onClick: (e: React.MouseEvent) => {
             toggleColumnSort(e, columnId);
@@ -67,7 +83,6 @@ export default function FinishLaterEvolutionTable({ isFinishLaterEvolution, fetc
             }
             return false;
         };
-        console.log(formData)
         setIsComplete(!hasEmptyFields(formData));
     }, [formData]);
 
@@ -77,17 +92,18 @@ export default function FinishLaterEvolutionTable({ isFinishLaterEvolution, fetc
         setFormDataMirror(evolution);
         setOpen(true);
     }
-
+    const [isSending, setIsSending] = useState(false);
     async function sendData(): Promise<void> {
+        setIsSending(true);
         const dataToSend = {
             ...formData,
             is_finish_later: false,
         }
-        const { data, error } = await client
-            .rpc('update_evolution', {
+        try {
+            const { error } = await client.rpc('update_evolution', {
                 current_illness: dataToSend.current_illness,
                 diagnosis: dataToSend.diagnosis,
-                id: dataToSend.evolution_id,
+                id: dataToSend.id,
                 is_alternative: dataToSend.is_alternative,
                 is_finish_later: dataToSend.is_finish_later,
                 motive: dataToSend.motive,
@@ -95,16 +111,24 @@ export default function FinishLaterEvolutionTable({ isFinishLaterEvolution, fetc
                 plan: dataToSend.plan,
                 therapy: dataToSend.therapy,
             })
-        if (error) {
+            if (error) {
+                console.error('Error updating evolution:', error)
+                showToast('Error', 'Error actualizando evolucion', 'error')
+                setIsSending(false);
+                return
+            } else {
+                setIsSending(false);
+                showToast('Exito', 'Evolucion completada correctamente', 'success')
+                setOpen(false);
+                setFormData(null);
+                setFormDataMirror(null);
+                setIsComplete(false);
+                fetchFinishLaterEvolutions()
+            }
+        } catch (error) {
+            setIsSending(false);
             console.error('Error updating evolution:', error)
-            return
-        } else {
-            console.log('Evolucion completada correctamente',data)
-            setOpen(false);
-            setFormData(null);
-            setFormDataMirror(null);
-            setIsComplete(false);
-            fetchFinishLaterEvolutions()
+            showToast('Error', 'Error actualizando evolucion', 'error')
         }
     }
 
@@ -151,16 +175,19 @@ export default function FinishLaterEvolutionTable({ isFinishLaterEvolution, fetc
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {isFinishLaterEvolution === null && <TableRow><TableCell colSpan={3}><Spinner size='extra-large' className='my-12' /></TableCell></TableRow>}
-                    {isFinishLaterEvolution.length === 0 && <TableRow><TableCell colSpan={3}>No hay evoluciones pendientes</TableCell></TableRow>}
-                    {rows.map(({ item }, index) => (
-                        <TableRow key={index} onClick={() => selectEvolution(item)}>
-                            <TableCell>{item.id}</TableCell>
-                            <TableCell>{item.patient_name}</TableCell>
-                            <TableCell>{item.attended_date}</TableCell>
+                    {isLoading ? (
+                        <TableRow className="space-y-5">
+                            <TableCell colSpan={3}><Spinner className="my-12" /></TableCell>
                         </TableRow>
+                    ) : (isFinishLaterEvolution.length === 0 ? (<TableRow><TableCell colSpan={3}>No hay evoluciones pendientes</TableCell></TableRow>) : (
+                        rows.map(({ item }, index) => (
+                            <TableRow key={index} onClick={() => selectEvolution(item)}>
+                                <TableCell>{item.id}</TableCell>
+                                <TableCell>{item.patient_name}</TableCell>
+                                <TableCell>{item.attended_date}</TableCell>
+                            </TableRow>
+                        ))
                     ))}
-
                 </TableBody>
             </Table>
             <Dialog open={open}>
@@ -168,7 +195,7 @@ export default function FinishLaterEvolutionTable({ isFinishLaterEvolution, fetc
                     <DialogBody>
                         <DialogTitle>Completar evolucion</DialogTitle>
                         {formData ? (
-                            <DialogContent className='space-y-5'>
+                            <DialogContent className="space-y-5">
                                 <InputFieldToComplete type='date' input={formData.attended_date} label='Fecha de atencion' isComplete={true} />
                                 <TextFieldToComplete input={formData.motive} isComplete={formDataMirror?.motive !== '' && formDataMirror?.motive !== null} label='Motivo de consulta' handleDataChange={handleDataChange} id='motive' />
                                 <TextFieldToComplete input={formData.current_illness} isComplete={formDataMirror?.current_illness !== '' && formDataMirror?.current_illness !== null} label='Enfermedad actual' handleDataChange={handleDataChange} id='current_illness' />
@@ -181,10 +208,15 @@ export default function FinishLaterEvolutionTable({ isFinishLaterEvolution, fetc
                                     <TextFieldToComplete input={formData.therapy} isComplete={formDataMirror?.therapy !== '' && formDataMirror?.therapy !== null} label='Terapia' handleDataChange={handleDataChange} id='therapy' />
                                 }
                             </DialogContent>
-                        ) : (<DialogContent className='space-y-5'><Spinner size='extra-large' className='my-12' /></DialogContent>)}
+                        ) : (
+                            <DialogContent className="space-y-5">
+                                <Spinner size="extra-large" className="my-12" />
+                            </DialogContent>
+                        )}
+
                         <DialogActions>
-                            <Button onClick={() => closeDialog()} appearance='secondary'>Cerrar</Button>
-                            <Button appearance='primary' onClick={() => sendData()} disabled={!isComplete}>Enviar</Button>
+                            <Button onClick={closeDialog} appearance='secondary'>Cerrar</Button>
+                            <Button appearance='primary' onClick={sendData} disabled={!isComplete || isSending}>{isSending ? "Enviando..." : "Enviar"}</Button>
                         </DialogActions>
                     </DialogBody>
                 </DialogSurface>

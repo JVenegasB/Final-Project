@@ -17,9 +17,7 @@ export default function PasswordResetPage() {
           })
         if (error) {
             console.error('Error sending password reset email', error)
-        } else {
-            console.log('Password reset email sent')
-        }
+        } 
     }
     const validateEmail = (email:string) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -27,10 +25,8 @@ export default function PasswordResetPage() {
     };
     useEffect(() => {
         if (!validateEmail(email)) {
-            console.log('Email invalido')
             setIsEmailValid(false)
         }else{
-            console.log('Email valido')
             setIsEmailValid(true)
         }
     }, [email])

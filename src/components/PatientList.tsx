@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { TableColumnDefinition,Menu, createTableColumn, useTableFeatures, useTableSort, TableColumnId, Table, TableHeader, TableHeaderCell, TableRow, TableBody, TableCell, TableCellLayout, Button, Avatar, Label, Select, Input, MenuButton, MenuItem, MenuList, MenuPopover, MenuTrigger } from "@fluentui/react-components";
-import { PatientMainData } from '../types/types.ts';
+import { TableColumnDefinition, Menu, createTableColumn, useTableFeatures, useTableSort, TableColumnId, Table, TableHeader, TableHeaderCell, TableRow, TableBody, TableCell, TableCellLayout, Button, Avatar, Label, Select, Input, MenuButton, MenuItem, MenuList, MenuPopover, MenuTrigger, Spinner } from "@fluentui/react-components";
+import {  PatientMainData } from '../types/types.ts';
 import { ArrowDownload28Regular, DocumentAdd28Regular, Eye28Regular } from '@fluentui/react-icons';
+import { useLoadingHistContext } from '../context/loadingIncHistContext';
+
 
 interface Props {
     patientData: PatientMainData[];
@@ -10,6 +12,7 @@ interface Props {
     setExportType: (value: string) => void;
     setSelectedPatient: (value: PatientMainData) => void;
     fetchPatientAndExport: (patient_id: number) => void;
+    fetchPatientList: () => void;
 }
 
 const columns: TableColumnDefinition<PatientMainData>[] = [
@@ -31,9 +34,9 @@ const columns: TableColumnDefinition<PatientMainData>[] = [
     }),
 ];
 
-export default function PatientList({ patientData,setAddEvolutionComponent,fatherSetSelectedPatient,setExportType,setSelectedPatient,fetchPatientAndExport }: Props) {
+export default function PatientList({ patientData, setAddEvolutionComponent, fatherSetSelectedPatient, setExportType, setSelectedPatient, fetchPatientAndExport, fetchPatientList }: Props) {
     const [handleFilter, setHandleFilter] = useState<string>('name');
-
+    const [isLoading,] = useLoadingHistContext()
     const handleFilterButton = (input: string) => {
         setHandleFilter(input);
     }
@@ -43,7 +46,7 @@ export default function PatientList({ patientData,setAddEvolutionComponent,fathe
     }
     const filterPatients = useMemo(() => {
         if (searchElement === '') {
-            return patientData;
+            return [];
         }
         return patientData?.filter((patient) => {
             if (handleFilter === 'name') {
@@ -85,7 +88,6 @@ export default function PatientList({ patientData,setAddEvolutionComponent,fathe
     const rows = sort(getRows());
 
     const handlePatientSelection = (patient: PatientMainData) => {
-        console.log("Oacuebte sekeccuibadi", patient);
         fatherSetSelectedPatient(patient.patient_id);
     }
     const handleAddEvolution = (patient: PatientMainData) => {
@@ -140,8 +142,11 @@ export default function PatientList({ patientData,setAddEvolutionComponent,fathe
                         />
                     )}
                 </div>
+                <div className="flex items-center lg:ml-5 font-lato md:my-3">
+                    <Button onClick={fetchPatientList} disabled={isLoading ?? false}>Refresh</Button>
+                </div>
             </div>
-            
+
             <div className="flex-grow overflow-x-auto">
                 <Table sortable className="mt-5 min-w-full">
                     <TableHeader className="font-roboto font-semibold">
@@ -165,60 +170,76 @@ export default function PatientList({ patientData,setAddEvolutionComponent,fathe
                         </TableRow>
                     </TableHeader>
                     <TableBody className="font-openSans">
-                        {rows.map(({ item }, index) => (
-                            <TableRow key={index}>
-                                <TableCell>
-                                    <div className="flex items-center justify-center">
-                                        <Avatar name={item.name} />
-                                    </div>
-                                </TableCell>
-                                <TableCell>
-                                    <TableCellLayout>
-                                        {item.name}
-                                    </TableCellLayout>
-                                </TableCell>
-                                <TableCell>
-                                    {item.id}
-                                </TableCell>
-                                <TableCell>
-                                    {item.first_session}
-                                </TableCell>
-                                <TableCell>
-                                    {item.last_session}
-                                </TableCell>
-                                <TableCell>
-                                    
-                                    <div className="flex flex-col py-2">
-                                        {/* ver detalles de historia */}
-                                        <Button
-                                            onClick={() => handlePatientSelection(item)}
-                                            icon={<Eye28Regular />}
-                                        >
-                                            Ver mas
-                                        </Button>
-                                        {/* Add evolution */}
-                                        <Button
-                                            icon={<DocumentAdd28Regular />}
-                                            onClick={() => handleAddEvolution(item)}
-                                        >
-                                            Evolucion
-                                        </Button>
-                                        <Menu>
-                                            <MenuTrigger disableButtonEnhancement>
-                                                <MenuButton icon={<ArrowDownload28Regular />}>Exportar</MenuButton>
-                                            </MenuTrigger>
-
-                                            <MenuPopover>
-                                                <MenuList>
-                                                    <MenuItem onClick={() => handleExportPdfSummary(item)}>Resumen</MenuItem>
-                                                    <MenuItem onClick={() => handleExportPdfComplete(item)}>Completo</MenuItem>
-                                                </MenuList>
-                                            </MenuPopover>
-                                        </Menu>
-                                    </div>
+                        {isLoading ? (
+                            <TableRow>
+                                <TableCell colSpan={6} className="text-center">
+                                    Cargando datos
+                                    <Spinner size="medium" className="my-6" />
                                 </TableCell>
                             </TableRow>
-                        ))}
+                        ) : patientData.length > 0 ? (
+                            rows.length > 0 ? (
+                                rows.map(({ item }, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>
+                                            <div className="flex items-center justify-center">
+                                                <Avatar name={item.name} />
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <TableCellLayout>
+                                                {item.name}
+                                            </TableCellLayout>
+                                        </TableCell>
+                                        <TableCell>
+                                            {item.id}
+                                        </TableCell>
+                                        <TableCell>
+                                            {item.first_session}
+                                        </TableCell>
+                                        <TableCell>
+                                            {item.last_session}
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-col py-2">
+                                                <Button
+                                                    onClick={() => handlePatientSelection(item)}
+                                                    icon={<Eye28Regular />}
+                                                >
+                                                    Ver mas
+                                                </Button>
+                                                <Button
+                                                    icon={<DocumentAdd28Regular />}
+                                                    onClick={() => handleAddEvolution(item)}
+                                                >
+                                                    Evolucion
+                                                </Button>
+                                                <Menu>
+                                                    <MenuTrigger disableButtonEnhancement>
+                                                        <MenuButton icon={<ArrowDownload28Regular />}>Exportar</MenuButton>
+                                                    </MenuTrigger>
+                                                    <MenuPopover>
+                                                        <MenuList>
+                                                            <MenuItem onClick={() => handleExportPdfSummary(item)}>Resumen</MenuItem>
+                                                            <MenuItem onClick={() => handleExportPdfComplete(item)}>Completo</MenuItem>
+                                                        </MenuList>
+                                                    </MenuPopover>
+                                                </Menu>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow className="py-5">
+                                    <TableCell colSpan={6} className="text-center">Ingrese un parametro de busqueda</TableCell>
+                                </TableRow>
+                            )
+                        ) : (
+                            <TableRow className="py-5">
+                                <TableCell colSpan={6} className="text-center">No se encontraron pacientes</TableCell>
+                            </TableRow>
+                        )}
+
                     </TableBody>
                 </Table>
             </div>

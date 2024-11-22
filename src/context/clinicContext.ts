@@ -6,6 +6,7 @@ type ClinicType = {
     address: string;
     description: string;
     phone: string;
+    logo_url: string;
 }
 type ClinicContextType =[
     clinic: ClinicType | null,

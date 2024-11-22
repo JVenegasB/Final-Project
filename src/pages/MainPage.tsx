@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import PatientsPage from './PatientsPage.tsx'
 import { useThemeContext } from '../context/themeContext.ts';
 import { PersonCircle28Regular, Home28Filled, Person28Filled, Settings28Filled, Navigation20Filled } from '@fluentui/react-icons';
-import { Button, Menu, MenuItem, MenuList, MenuPopover, MenuTrigger, Spinner } from '@fluentui/react-components';
+import { Button, Menu, MenuItem, MenuList, MenuPopover, MenuTrigger, Spinner, useToastController, Toast, ToastTitle, ToastBody, Toaster, ToastIntent } from '@fluentui/react-components';
 import { client } from '../supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { Session } from '@supabase/supabase-js';
@@ -11,6 +11,8 @@ import MainElementPage from './MainElementPage.tsx';
 import { useClinicContext } from '../context/clinicContext.ts';
 import { useUserContext } from '../context/userContext.ts';
 import { EvolutionToComplete, PatientMainData } from '../types/types.ts';
+import { useLoadingHistContext } from '../context/loadingIncHistContext.ts';
+import { useLoadingIncEvHistContext } from '../context/loadingIncEvHistContext.ts';
 
 interface JoinRequestType {
     id: number;
@@ -24,50 +26,71 @@ interface clinic {
     name: string
 }
 export default function Header() {
+    //Toaster
+    const { dispatchToast } = useToastController("global-toaster");
+    const showToast = (title: string, description: string, intent: ToastIntent) => {
+        dispatchToast(
+            <Toast>
+                <ToastTitle >{title}</ToastTitle>
+                <ToastBody>{description}</ToastBody>
+
+            </Toast>,
+            { position: "top-end", intent }
+        )
+    }
     //Navigation and context
     const navigate = useNavigate();
     const [loggedUser, setLoggedUser] = useUserContext();
     const [clinic, setClinic] = useClinicContext();
     const [isClinicMember, setIsClinicMember] = useState<boolean | null>(null);
     const [userJoinRequests, setUserJoinRequests] = useState<JoinRequestType[]>([]);
+    const [allowFetch, setAllowFetch] = useState(true);
     useEffect(() => {
-        if (clinic) {
+        if (clinic && allowFetch) {
             fetchPatientList();
             fetchFinishLaterEvolutions();
+            setAllowFetch(false);
         }
     }, [clinic])
     const fetchClinicUserData = async (session: Session) => {
-        const { data: clinic_user, error } = await client.from('clinic_users').select('*').eq('user_id', session?.user.id).single();
-        if (error) {
-            console.error('Error', error);
-            console.log('User does not belong to any company yet');
-            const { data: user, error: userError } = await client.from('users').select('*').eq('user_id', session.user.id).single();
-            if (userError) {
-                console.error('Error fetching user data', userError);
+        try {
+            const { data: clinic_user, error } = await client.from('clinic_users').select('*').eq('user_id', session?.user.id).single();
+            if (error) {
+                const { data: user, error: userError } = await client.from('users').select('*').eq('user_id', session.user.id).single();
+                if (userError) {
+                    console.error('Error fetching user data', userError);
+                    showToast('Error al obtener los datos', userError.message, 'error')
+                } else {
+                    setLoggedUser({
+                        user_id: user.user_id,
+                        email: user.email,
+                        name: user.name,
+                        phone: user.phone,
+                        role: ''
+                    });
+                }
+                setIsClinicMember(false);
+                setActiveTab('mainElement');
             } else {
-                setLoggedUser({
-                    user_id: user.user_id,
-                    email: user.email,
-                    name: user.name,
-                    phone: user.phone,
-                    role: ''
-                });
+                fetchClinicUserCredentials(clinic_user.clinic_id, session?.user.id, clinic_user.role);
             }
-
-            setIsClinicMember(false);
-            setActiveTab('mainElement');
-
-        } else {
-            fetchClinicUserCredentials(clinic_user.clinic_id, session?.user.id, clinic_user.role);
+        } catch (error) {
+            showToast('Error al obtener los datos', (error as Error).message, 'error')
         }
+
     }
 
 
+    const [clinic_logo, setClinicLogo] = useState('');
     const fetchClinicUserCredentials = async (clinic_id: number, user_id: string, role: string) => {
         const { data: clinic, error: clinicError } = await client.from('clinic').select('*').eq('id', clinic_id).single();
         const { data: user, error: userError } = await client.from('users').select('*').eq('user_id', user_id).single();
-        if (clinicError || userError) {
+        if (clinicError && clinicError.message) {
             console.error('error here', userError, clinicError);
+            showToast('Error al obtener los datos', clinicError.message, 'error')
+        } else if (userError && userError.message) {
+            console.error('error here', userError, clinicError);
+            showToast('Error al obtener los datos', userError.message, 'error')
         } else {
             setIsClinicMember(true);
             setClinic(clinic);
@@ -79,8 +102,18 @@ export default function Header() {
                 role: role
             });
             setActiveTab('mainElement');
+            fetchLogoUrl(clinic?.logo_url)
 
         }
+    }
+    const fetchLogoUrl = async (clinicUrlLogo: string) => {
+        const { data: signedUrlData, error: signedUrlError } = await client.storage.from('Clinic Logos').createSignedUrl(clinicUrlLogo, 60)
+        if (signedUrlError) {
+            console.error('Error getting signed url', signedUrlError)
+            showToast('Error al obtener los datos', signedUrlError.message, 'error')
+            return
+        }
+        setClinicLogo(signedUrlData?.signedUrl)
     }
 
     const fetchUserJoinRequests = async () => {
@@ -94,6 +127,7 @@ export default function Header() {
           `).eq('user_id', loggedUser?.user_id) as { data: JoinRequestType[] | null, error: unknown };;
         if (error) {
             console.error('Error fetching join requests', error)
+            showToast('Error al obtener las solicitudes', error.toString(), 'error')
         } else {
             if (data) {
                 const formattedData = data.map((request) => ({
@@ -105,6 +139,8 @@ export default function Header() {
         }
     }
     const [userSession, setUserSession] = useState<Session>();
+
+    //==============================Create context here ===============================
     useEffect(() => {
         client.auth.onAuthStateChange((_event, session) => {
             if (!session) {
@@ -118,7 +154,6 @@ export default function Header() {
 
     useEffect(() => {
         if (!isClinicMember) {
-            console.log('Going to detch join request with this data: ', loggedUser?.user_id)
             fetchUserJoinRequests();
         }
     }, [isClinicMember])
@@ -137,20 +172,29 @@ export default function Header() {
         setClinic(null);
         await client.auth.signOut();
     }
+    const [, setIsLoading] = useLoadingHistContext()
     const [patientData, setPatientData] = useState<PatientMainData[]>([]);
     const fetchPatientList = async () => {
+        setIsLoading(true)
         if (clinic === null) {
             console.error('No clinic data found');
+            setIsLoading(false)
             return;
         }
-        const url = `http://127.0.0.1:54321/functions/v1/fetchMainUserData?clinicid=${clinic.id}`;
         try {
-            console.log('Fetching patient list from service');
-            const res = await fetch(url, {
+            const queryParams = new URLSearchParams({ clinicid: clinic.id.toString() }).toString();
+
+            const { data, error } = await client.functions.invoke(`fetchMainUserData?${queryParams}`, {
                 method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
-            })
-            const data = await res.json();
+            });
+
+
+            if (error) {
+                console.error('Error fetching patient list:', error.message);
+                showToast('Error al obtener los datos', error.message, 'error')
+                setIsLoading(false)
+                return;
+            }
             const modifiedData = data.map((prevData: PatientMainData) => ({
                 ...prevData,
                 first_session: prevData.first_session.split('T')[0],
@@ -159,6 +203,9 @@ export default function Header() {
             setPatientData(modifiedData);
         } catch (err) {
             console.error('Error fetching patient list:', err);
+            showToast('Error al obtener los datos', (err as Error).message, 'error')
+        } finally {
+            setIsLoading(false)
         }
     }
 
@@ -177,20 +224,25 @@ export default function Header() {
         const filteredPatients = data.filter((patient) => patient.is_finish_later === true);
         setIsFinishLaterHistory((prevHistory) => [...prevHistory, ...filteredPatients]);
     };
-
+    const [, setIsLoadingHist] = useLoadingIncEvHistContext();
     //filter isFinishLater evolutions
     const fetchFinishLaterEvolutions = async () => {
+        setIsLoadingHist(true)
         if (clinic === null) {
-            console.error('No clinic data found');
+            console.error('No clinic d90ata found');
+            setIsLoadingHist(false)
             return;
         }
-        const url = `http://127.0.0.1:54321/functions/v1/fetch_unfinished_evolutions?clinic_id=${clinic.id}`;
         try {
-            const res = await fetch(url, {
+            const { data, error } = await client.functions.invoke(`fetch_unfinished_evolutions?clinic_id=${clinic.id}`, {
                 method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
             })
-            const data = await res.json();
+
+            if (error) {
+                console.error('Error fetching unfinished evolutions:', error.message);
+                showToast('Error al obtener los datos', error.statusText, 'error')
+                return;
+            }
             const modifiedData = data.map((prevData: EvolutionToComplete) => ({
                 ...prevData,
                 attended_date: prevData.attended_date.split('T')[0]
@@ -198,40 +250,51 @@ export default function Header() {
             setIsFinishLaterEvolution(modifiedData);
         } catch (err) {
             console.error('Error fetching unfinished evolutions:', err);
+            showToast('Error al obtener los datos', (err as Error).message, 'error')
+        } finally {
+            setIsLoadingHist(false)
         }
     }
+
     return (
         <div className="flex flex-col max-h-screen">
-            <div className={`${isDarkMode ? "bg-mainBgDark" : "bg-white"} lg:flex flex-row justify-between px-5 hidden`}>
-                <div className='flex flex-row justify-center items-center w-44 h-20 m-2'>
+            <Toaster toasterId="global-toaster" />
+            <div className={`${isDarkMode ? "bg-mainBgDark" : "bg-mainBgLight"} lg:flex flex-row justify-between px-5 hidden`}>
+                <div className="flex flex-row justify-center items-center w-44 h-20 m-2">
                     {isClinicMember ?
-                        <h1 className='text-3xl font-bold'>
-                            {clinic?.name}
-                        </h1> : <h1 className='text-3xl font-bold'>
+                        (clinic_logo !== '' ? (<h1 className='text-3xl font-bold'>
+                            <img src={clinic_logo} alt="" className="w-36 h-20 object-contain" />
+                        </h1>) : (<h1 className='text-3xl font-bold'>
                             Bienvenido
-                        </h1>
+                        </h1>)) : (<h1 className='text-3xl font-bold'>
+                            Bienvenido
+                        </h1>)
                     }
                 </div>
                 <div className='flex flex-row items-center m-2'>
-                    {loggedUser?.role === 'admin' && <div className='font-roboto italic text-gray-400'>Codigo: {clinic?.unique_code}</div>}
+                    {loggedUser?.role === 'admin' && (
+                        <div className="font-roboto italic text-gray-400">Codigo: {clinic?.unique_code}</div>
+                    )}
                     <div className='border-2 mx-2 p-2 font-roboto'>
                         <Menu>
                             <MenuTrigger disableButtonEnhancement>
                                 <Button appearance='transparent'>
                                     <PersonCircle28Regular className='mr-2' />
                                     {loggedUser?.name}
-
                                 </Button>
                             </MenuTrigger>
                             <MenuPopover>
                                 <MenuList>
-                                    <MenuItem><Button onClick={() => signOut()} appearance='transparent'>Cerrar sesion</Button></MenuItem>
+                                    <MenuItem>
+                                        <Button onClick={() => signOut()} appearance='transparent'>Cerrar sesion</Button>
+                                    </MenuItem>
                                 </MenuList>
                             </MenuPopover>
                         </Menu>
                     </div>
                 </div>
             </div>
+
             <div className="flex lg:flex-row flex-grow flex-col">
                 <div className={`flex flex-col items-center px-3 ${isDarkMode ? "bg-mainBgDark" : "bg-blue-900"}`}>
                     <div className='flex flex-col justify-between items-center px-3 w-full lg:w-auto lg:hidden my-2'>
@@ -253,8 +316,19 @@ export default function Header() {
                             <Settings28Filled className="mr-2 text-white" />
                             <p className=' text-white text-lg'>Configuraciones</p>
                         </button>
+                        <div>
+                            <div className='px-3 py-5 font-roboto lg:hidden flex flex-row justify-between'>
+                                <button onClick={() => signOut()}>Cerrar sesion</button>
+                                {loggedUser?.role === 'admin' && (
+                                    <div className="font-roboto italic text-gray-400">Codigo: {clinic?.unique_code}</div>
+                                )}
+
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+
                 <div className={`flex flex-grow flex-col w-full ${isDarkMode ? "bg-secondaryBgDark" : "bg-secondaryBgLight"} lg:h-[calc(100vh-96px)] h-[calc(100vh-38px)] overflow-y-auto`}>
                     {(() => {
                         switch (activeTab) {
@@ -267,10 +341,10 @@ export default function Header() {
                                         isFinishLaterEvolution={isFinishLaterEvolution}
                                         isFinishLaterHistory={isFinishLaterHistory}
                                         fetchFinishLaterEvolutions={fetchFinishLaterEvolutions}
-                                        />
+                                    />
                                 );
                             case 'settingsElement':
-                                return <SettingsComponent isClinicMember={isClinicMember} />;
+                                return <SettingsComponent isClinicMember={isClinicMember} fetchLogoUrl={fetchLogoUrl} />;
                             case 'mainElement':
                                 return (
                                     <MainElementPage
@@ -283,6 +357,8 @@ export default function Header() {
                                         isFinishLaterEvolution={isFinishLaterEvolution}
                                         isFinishLaterHistory={isFinishLaterHistory}
                                         fetchFinishLaterEvolutions={fetchFinishLaterEvolutions}
+                                        fetchClinicUserData={fetchClinicUserData}
+                                        fetchUserJoinRequests={fetchUserJoinRequests}
                                     />
                                 );
                             default:
@@ -298,7 +374,7 @@ export default function Header() {
                     })()}
                 </div>
             </div>
-            
+
         </div>
 
     );

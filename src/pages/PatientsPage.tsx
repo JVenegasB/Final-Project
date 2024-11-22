@@ -1,4 +1,4 @@
-import { SelectTabData, SelectTabEvent, Tab, TabList, TabValue } from "@fluentui/react-components";
+import { SelectTabData, SelectTabEvent, Tab, TabList, TabValue, useToastController, Toast, ToastTitle, ToastBody, ToastIntent } from "@fluentui/react-components";
 import { useEffect, useRef, useState } from 'react';
 import PatientList from '../components/PatientList.tsx'
 import { EvolutionToComplete, PatientMainData, PatientSummary } from '../types/types.ts'
@@ -8,6 +8,7 @@ import ExportPDF from "../components/ExportPDF.tsx";
 import NewPatient from "../components/NewPatient.tsx";
 import PatientHistory from "../components/PatientHistory.tsx";
 import FinishLater from '../components/FinishLater.tsx';
+import { client } from "../supabase/client.ts";
 
 interface PatientsPageProps {
     fetchPatientList: () => void;
@@ -19,7 +20,19 @@ interface PatientsPageProps {
 }
 
 
-export default function PatientsPage({ fetchPatientList, patientData, /*setPatientData,*/ isFinishLaterEvolution, isFinishLaterHistory,fetchFinishLaterEvolutions }: PatientsPageProps) {
+export default function PatientsPage({ fetchPatientList, patientData, isFinishLaterEvolution, isFinishLaterHistory, fetchFinishLaterEvolutions }: PatientsPageProps) {
+    //Toaster
+    const { dispatchToast } = useToastController("global-toaster");
+    const showToast = (title: string, description: string, intent: ToastIntent) => {
+        dispatchToast(
+            <Toast>
+                <ToastTitle >{title}</ToastTitle>
+                <ToastBody>{description}</ToastBody>
+
+            </Toast>,
+            { position: "top-end", intent }
+        )
+    }
     //Theme contest
     const { isDarkMode } = useThemeContext();
     //Change values to change tab
@@ -29,48 +42,65 @@ export default function PatientsPage({ fetchPatientList, patientData, /*setPatie
         setChangeViewPatientContent("list");
     }
     //Variable to store a patients complete history
-    const [selectedPatient, setSelectedPatient] = useState<PatientSummary[] | null>(null);
+    const [selectedPatient, setSelectedPatient] = useState<PatientSummary | null>(null);
     //Store in cache queried patients
-    const patientCache = useRef<{ [key: number]: { data: PatientSummary[] } }>({});
+    const patientCache = useRef<{ [key: number]: { data: PatientSummary } }>({});
+    const fetchParaclinicsUrl = async (url: string) => {
+        const { data: signedUrlData, error: signedUrlError } = await client.storage.from('Paraclinics').createSignedUrl(url, 60 * 60 * 18)
+        if (signedUrlError) {
+            console.error('Error getting signed url', signedUrlError)
+            showToast('Error al obtener los datos', signedUrlError.message, 'error')
+            return
+        }
+        return signedUrlData?.signedUrl;
+    }
     //fetched patient details from id
     const fetchSelectedPatientDetails = async (patient_id: number, forceRefresh = false) => {
         //validate if patient has been fetched before
-        console.log("Cache:", patientCache.current);
         const cachedData = patientCache.current[patient_id];
         if (cachedData && !forceRefresh) {
-            console.log('Using Cache');
             setSelectedPatient(cachedData.data);
             return;
         }
         //fetch patient
-        //Maybe not needed edge function here?
-        const url = `http://127.0.0.1:54321/functions/v1/retrieve-patient-complete-history?patient_id=${patient_id}`;
         try {
-            console.log('Fetching selected patient details from service');
-            const res = await fetch(url, {
+            const { data, error } = await client.functions.invoke(`retrieve-patient-complete-history?patient_id=${patient_id}`, {
                 method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
             })
-            const data = await res.json();
-            //Format patients data
-            const modifiedData = data.map((prevData: PatientSummary) => ({
-                ...prevData,
-                first_session: prevData.first_session,
-                last_session: prevData.last_session,
-                evolution: Array.isArray(prevData.evolution)
-                    ? prevData.evolution.map(evo => ({
-                        ...evo,
-                        attended_date: evo.attended_date ? evo.attended_date.split('T')[0] : null,
-                    }))
-                    : null,
 
-            }));
-            patientCache.current[patient_id] = { data: modifiedData };
-            setSelectedPatient(modifiedData);
+            if (error) {
+                console.error('Error fetching selected patient details:', error);
+                showToast("Error", "Error al cargar el historial del paciente seleccionado", 'error');
+                return;
+            }
+            let updatedData; // Declare updatedData outside the blocks
+
+            if (data[0].paraclinic && data[0].paraclinic.length > 0) {
+                const paraclinicsToViewTemp = [];
+                for (const paraclinic of data[0].paraclinic) {
+                    const realUrl = await fetchParaclinicsUrl(paraclinic.content_url);
+                    paraclinicsToViewTemp.push({
+                        ...paraclinic,
+                        real_url: realUrl,
+                    });
+                }
+                updatedData = {
+                    ...data[0],
+                    paraclinic: paraclinicsToViewTemp,
+                };
+            } else {
+                updatedData = {
+                    ...data[0],
+                };
+            }
+            patientCache.current[patient_id] = { data: updatedData };
+            setSelectedPatient(updatedData);
         } catch (err) {
             console.error('Error fetching selected patient details:', err);
+            showToast("Error", "Error al cargar el historial del paciente", 'error');
         }
     }
+
     //variable to variate content displayed in view Patient tab
     const [changeViewPatientContent, setChangeViewPatientContent] = useState<string>("list");
     //variable to store selected patient id
@@ -78,10 +108,11 @@ export default function PatientsPage({ fetchPatientList, patientData, /*setPatie
 
     //Dialog to show patients detailed history
     const [openDialog, setOpenDialog] = useState<boolean>(false);
+
     const fetchPatientAndOpenDialog = async (patient_id: number) => {
-        fetchSelectedPatientDetails(patient_id);
-        setOpenDialog(true);
         setSelectedPatientId(patient_id);
+        setOpenDialog(true);
+        fetchSelectedPatientDetails(patient_id);
     }
     //Fetch patient data to export it into other page
     const fetchPatientAndExport = (patient_id: number) => {
@@ -92,7 +123,6 @@ export default function PatientsPage({ fetchPatientList, patientData, /*setPatie
     //given a patient id, remove it from cache
     const clearPatientCache = (patient_id: number) => {
         delete patientCache.current[patient_id];
-        console.log(`Cache cleared for patient_id: ${patient_id}`);
     };
     //store and change values of finish later histories and evolutions
     const [pendingSum, setPendingSum] = useState<number>(0);
@@ -117,14 +147,14 @@ export default function PatientsPage({ fetchPatientList, patientData, /*setPatie
                 {tabSelected === "viewPatients" && (
                     <div className='max-h-[calc(100vh-250px)] w-full'>
                         {changeViewPatientContent === "list" ? (
-                            <PatientList patientData={patientData} setAddEvolutionComponent={setChangeViewPatientContent} fatherSetSelectedPatient={fetchPatientAndOpenDialog} setExportType={setExportType} setSelectedPatient={setSelectedPatientMainData} fetchPatientAndExport={fetchPatientAndExport} />
+                            <PatientList patientData={patientData} setAddEvolutionComponent={setChangeViewPatientContent} fatherSetSelectedPatient={fetchPatientAndOpenDialog} setExportType={setExportType} setSelectedPatient={setSelectedPatientMainData} fetchPatientAndExport={fetchPatientAndExport} fetchPatientList={fetchPatientList} />
                         ) : (null)}
                         {changeViewPatientContent === "evolution" ? (
-                            <AddEvolution patientData={selectedPatientMainData} setAddEvolutionComponent={setChangeViewPatientContent} fetchPatientAndOpenDialog={fetchPatientAndOpenDialog} clearPatientCache={clearPatientCache} fetchFinishLaterEvolutions={fetchFinishLaterEvolutions}/>
+                            <AddEvolution patientData={selectedPatientMainData} setAddEvolutionComponent={setChangeViewPatientContent} fetchPatientAndOpenDialog={fetchPatientAndOpenDialog} clearPatientCache={clearPatientCache} fetchFinishLaterEvolutions={fetchFinishLaterEvolutions} setChangeViewPatientContent={setChangeViewPatientContent} />
                         ) : (null)}
                         {changeViewPatientContent === "export" ? (
-                            selectedPatient && selectedPatient.length > 0 && (
-                                <ExportPDF patientData={selectedPatient[0]} exportType={exportType} setAddEvolutionComponent={setChangeViewPatientContent} />
+                            selectedPatient && (
+                                <ExportPDF patientData={selectedPatient} exportType={exportType} setAddEvolutionComponent={setChangeViewPatientContent} />
                             )
                         ) : (null)}
 
@@ -132,17 +162,17 @@ export default function PatientsPage({ fetchPatientList, patientData, /*setPatie
                 )}
                 {tabSelected === "createPatients" && (
                     <div className='max-h-[calc(100vh-250px)] w-full'>
-                        <NewPatient fetchPatientList={fetchPatientList}/>
+                        <NewPatient fetchPatientList={fetchPatientList} setTabSelected={setTabSelected} />
                     </div>
                 )}
                 {tabSelected === 'uncompletedHistory' && (
                     <div className="max-h-[calc(100vh-250px)] w-full">
-                        <FinishLater isFinishLaterEvolution={isFinishLaterEvolution} isFinishLaterHistory={isFinishLaterHistory} fetchPatientList={fetchPatientList} fetchFinishLaterEvolutions={fetchFinishLaterEvolutions}/>
+                        <FinishLater isFinishLaterEvolution={isFinishLaterEvolution} isFinishLaterHistory={isFinishLaterHistory} fetchPatientList={fetchPatientList} fetchFinishLaterEvolutions={fetchFinishLaterEvolutions} />
                     </div>
                 )}
             </div>
-            {(selectedPatient !== null) &&
-                <PatientHistory open={openDialog} setOpen={setOpenDialog} selectedPatient={selectedPatient[0]} fetchSelectedPatientDetails={fetchSelectedPatientDetails} selectedPatientId={selectedPatientId} />
+            {(openDialog===true) &&
+                <PatientHistory open={openDialog} setOpen={setOpenDialog} selectedPatient={selectedPatient} fetchSelectedPatientDetails={fetchSelectedPatientDetails} selectedPatientId={selectedPatientId} />
             }
         </div>
 

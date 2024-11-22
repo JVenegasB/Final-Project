@@ -1,11 +1,25 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
-import { Label, Input, Button, Checkbox } from '@fluentui/react-components';
+import { Label, Input, Button /*Checkbox,*/ ,useId, useToastController, Toast, ToastTitle, ToastBody,Toaster, ToastIntent} from '@fluentui/react-components';
 import { client } from '../supabase/client';
 import { EyeOffRegular, EyeRegular } from '@fluentui/react-icons';
 import { useThemeContext } from '../context/themeContext';
 
+
 export default function LogInPage() {
+  //Toaster
+  const toasterId = useId("toaster");
+  const { dispatchToast } = useToastController(toasterId);
+  const showToast = (title:string,description:string,intent:ToastIntent) => {
+      dispatchToast(
+          <Toast>
+              <ToastTitle >{title}</ToastTitle>
+              <ToastBody>{description}</ToastBody>
+
+          </Toast>,
+          { position:"top-end",intent }
+      )
+  }
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const navigate = useNavigate()
@@ -19,12 +33,13 @@ export default function LogInPage() {
     }).then((response) => {
       if (response.error) {
         console.error('Error logging in', response.error.message);
+        showToast('Error',response.error.message,'error')
       } else {
-        console.log('User logged in', response);
         navigate('/mainPage')
       }
     }).catch((error) => {
       console.error('Error in authentication process', error);
+      showToast('Error',error.message,'error')
     });
 
   }
@@ -37,7 +52,7 @@ export default function LogInPage() {
     };
 
     checkUser();
-  }, [navigate]);
+  }, []);
 
   const [showPassword, setShowPassword] = useState(false);
   const MicButton: React.FC = () => {
@@ -53,11 +68,12 @@ export default function LogInPage() {
   const { isDarkMode, } = useThemeContext();
   return (
     <div className="flex h-screen">
+      <Toaster toasterId={toasterId} />
       <div className={`w-full flex items-center justify-center bg-gradient-to-br ${isDarkMode ? 'from-black to-gray-500' : 'from-blue-700 to-blue-100"'}`}>
         <div className={`w-full max-w-xl space-y-8 p-10 ${isDarkMode ? 'bg-[#242424]/80' : 'bg-white/80'} rounded-lg`}>
-            <h2 className="mt-6 text-center text-3xl font-extrabold font-roboto">
-              Inicia sesion con tu cuenta
-            </h2>
+          <h2 className="mt-6 text-center text-3xl font-extrabold font-roboto">
+            Inicia sesion con tu cuenta
+          </h2>
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-4 rounded-md shadow-sm">
               <div>
@@ -95,7 +111,7 @@ export default function LogInPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
+            {/* <div className="flex items-center justify-between">
               <div className="flex items-center">
 
                 <Checkbox
@@ -108,7 +124,7 @@ export default function LogInPage() {
               <div className="text-sm">
                 <Link to="/recoverpassword" className='font-medium hover:text-blue-500 ml-1'>¿Olvidaste tu contraseña?</Link>
               </div>
-            </div>
+            </div> */}
 
             <div className='flex flex-col justify-center items-end'>
               <Button

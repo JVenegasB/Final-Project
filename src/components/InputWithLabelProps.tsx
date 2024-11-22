@@ -11,6 +11,7 @@ interface InputWithLabelProps {
     contentAfter?: JSX.Element;
     error?: string;
     touched?: boolean;
+    autocomplete?: string;
 }
 
 export default function InputWithLabel({
@@ -24,7 +25,8 @@ export default function InputWithLabel({
     onInvalid,
     contentAfter,
     error,
-    touched
+    touched,
+    autocomplete
 }: InputWithLabelProps) {
     return (
         <div>
@@ -41,6 +43,7 @@ export default function InputWithLabel({
                 onChange={onChange}
                 onInvalid={onInvalid}
                 contentAfter={contentAfter}
+                autoComplete={autocomplete}
                 className={`appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
             />
             {touched && error && <p className="text-red-500 text-sm">{error}</p>}

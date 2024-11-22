@@ -1,11 +1,12 @@
-import { Accordion, AccordionItem, AccordionHeader, AccordionPanel, Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Textarea, Spinner } from '@fluentui/react-components';
+import { Accordion, AccordionItem, AccordionHeader, AccordionPanel, Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Spinner, useId, useToastController, Toast, ToastTitle, ToastBody, Toaster, ToastIntent } from '@fluentui/react-components';
 import { PatientSummary } from '../types/types.ts'
-import { AddCircle24Regular } from '@fluentui/react-icons';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import AccordionDetailSection from './AccordionDetailSection.tsx';
 import DetailRow from './DetailRow.tsx';
 import { DetailGridRow } from './DetailedGridRow.tsx'
-import { client } from '../supabase/client';
+import DialogViewParaclinics from './DialogViewParaclinics.tsx';
+import DialogUploadParaclinic from './DialogUploadParaclinic.tsx';
+import DialogAnnotations from './DialogAnnotations.tsx';
 
 interface Props {
     selectedPatient: PatientSummary | null;
@@ -16,57 +17,42 @@ interface Props {
 }
 
 export default function PatientHistory({ selectedPatient, open, setOpen, fetchSelectedPatientDetails, selectedPatientId }: Props) {
-    //Show annotations dialog
-    const [annotationsDialog, setAnnotationsDialog] = useState<boolean>(false);
-    //Store annotations values
-    const [newAnnotation, setNewAnnotation] = useState<string>('');
-    //Store id of the evolution
-    const [evolutionId, setEvolutionId] = useState<number>(0);
-    //Handle dialog appearance
-    const showDialog = (evolution_id: number) => {
-        setEvolutionId(evolution_id);
-        setAnnotationsDialog(true)
+    //Toaster
+    const toasterId = useId("toaster");
+    const { dispatchToast } = useToastController(toasterId);
+    const showToast = (title: string, description: string, intent: ToastIntent) => {
+        dispatchToast(
+            <Toast>
+                <ToastTitle >{title}</ToastTitle>
+                <ToastBody>{description}</ToastBody>
+
+            </Toast>,
+            { position: "top-end", intent }
+        )
     }
-    //Handle close dialog
-    const closeDialog = () => {
-        setAnnotationsDialog(false);
-        setEvolutionId(0);
-        setNewAnnotation('');
-    }
-    //Send annotation related to a evolution
-    const sendData = async () => {
-        const currentDate = new Date();
-        const localISOTime = new Date(
-            currentDate.getTime() - currentDate.getTimezoneOffset() * 60000
-        ).toISOString();
-        const { error } = await client.from('annotations').insert({
-            evolution_id: evolutionId,
-            description: newAnnotation,
-            created_at: localISOTime
-        })
-        if (error) {
-            console.error('Error sending annotation:', error)
-        } else {
-            closeDialog();
-            setAnnotationsDialog(false);
-            setNewAnnotation('');
-            setEvolutionId(0);
-            fetchSelectedPatientDetails(selectedPatientId || 0, true);
+    const validateFileType = (file: File): boolean => {
+        const validMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+        return validMimeTypes.includes(file.type);
+    };
+    const [paraclinicToSend, setParaclinicToSend] = useState<File | null>(null);
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            if (!validateFileType(file)) {
+                showToast('Error', 'Solo se aceptan imagenes y pdf', 'error');
+                return;
+            }
+            setParaclinicToSend(file);
         }
     }
-    const [date, setDate] = useState('');
-    const [time, setTime] = useState('');
 
-    useEffect(() => {
-        if (selectedPatient?.first_session) {
-            const date = new Date(selectedPatient.first_session);
-            setDate(date.toLocaleDateString());
-            setTime(date.toLocaleTimeString());
-        }
-    }, [selectedPatient])
-
+    const closeMainDialog = () => {
+        setParaclinicToSend(null);
+        setOpen(false);
+    }
     return (
         <Dialog open={open} >
+            <Toaster toasterId={toasterId} />
             <DialogSurface style={{ width: '65%', maxWidth: '90%' }}>
                 {(selectedPatient?.id === selectedPatientId) ? (
                     <DialogBody>
@@ -87,7 +73,7 @@ export default function PatientHistory({ selectedPatient, open, setOpen, fetchSe
                                 <Accordion className="h-full" multiple>
                                     <AccordionDetailSection title='0. Datos del paciente'>
                                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                            <DetailRow label="Fecha" value={`${date} Hora: ${time}`} />
+                                            <DetailRow label="Fecha" value={`${selectedPatient?.first_session.split('T')[0]} Hora: ${selectedPatient?.first_session.split('T')[1].slice(0, 5)}`} />
                                             <DetailRow label="Doctor" value={selectedPatient?.doctor} />
                                             <DetailRow label="Nombre" value={selectedPatient?.name} />
                                             <DetailRow label="Edad" value={selectedPatient?.age} />
@@ -166,14 +152,15 @@ export default function PatientHistory({ selectedPatient, open, setOpen, fetchSe
                                             <DetailRow label="Musculoesquelético" value={selectedPatient?.system_review?.musculoskeletal} />
                                             <DetailRow label="Linfático" value={selectedPatient?.system_review?.lymphatic} />
                                             <DetailRow label="Alimentación" value={selectedPatient?.system_review?.feeding} />
-                                            <DetailRow label="Auditivo" value={selectedPatient?.system_review?.auditory} />
+                                            <DetailRow label="Cardiaco" value={selectedPatient?.system_review?.cardiac} />
                                             <DetailRow label="Sueño" value={selectedPatient?.system_review?.sleep} />
-                                            <DetailRow label="Visual" value={selectedPatient?.system_review?.visual} />
+                                            <DetailRow label="Nervioso" value={selectedPatient?.system_review?.nervous} />
                                             <DetailRow label="Actividad Física" value={selectedPatient?.system_review?.physical_activity} />
                                             <DetailRow label="Respiratorio" value={selectedPatient?.system_review?.respiratory} />
                                             <DetailRow label="Psicosocial" value={selectedPatient?.system_review?.psychosocial} />
                                             <DetailRow label="Digestivo" value={selectedPatient?.system_review?.digestive} />
-
+                                            <DetailRow label="Sentidos" value={selectedPatient?.system_review?.senses} />
+                                            <DetailRow label="Sanguineo" value={selectedPatient?.system_review?.blood} />
                                         </div>
                                     </AccordionDetailSection>
                                     <AccordionDetailSection title='6. Familiograma'>
@@ -234,7 +221,7 @@ export default function PatientHistory({ selectedPatient, open, setOpen, fetchSe
                                                         <AccordionItem key={index} value={index.toString()}>
                                                             <AccordionHeader>
                                                                 <div className='font-semibold text-lg font-roboto flex flex-row'>
-                                                                    {evolution.attended_date}
+                                                                    {evolution.attended_date.split('T')[0]} - {evolution.attended_date.split('T')[1].slice(0, 5)}
                                                                 </div>
                                                             </AccordionHeader>
                                                             <AccordionPanel>
@@ -288,7 +275,7 @@ export default function PatientHistory({ selectedPatient, open, setOpen, fetchSe
                                                                         <p className="text-gray-500 italic">No hay anotaciones</p>
                                                                     </div>
                                                                 )}
-                                                                {evolution.evolution_id !== undefined && (<Button icon={<AddCircle24Regular />} onClick={() => showDialog(evolution.evolution_id ?? 0)}>Agregar anotacion</Button>)}
+                                                                {evolution.evolution_id !== undefined && <DialogAnnotations evolutionId={evolution.evolution_id} showToast={showToast} fetchSelectedPatientDetails={fetchSelectedPatientDetails} selectedPatientId={selectedPatientId} />}
                                                             </AccordionPanel>
                                                         </AccordionItem>
                                                     ))
@@ -301,49 +288,64 @@ export default function PatientHistory({ selectedPatient, open, setOpen, fetchSe
                                         </div>
                                     </AccordionDetailSection>
                                     <AccordionDetailSection title='11. Paraclinicos'>
-                                        <div>
-                                            Elementos paraclinicos
+                                        <div className='space-y-5'>
+                                            {(selectedPatient?.paraclinic && selectedPatient?.paraclinic?.length > 0) ? (
+                                                <Accordion>
+                                                    {selectedPatient?.paraclinic.map((paraclinic, index) => (
+                                                        <AccordionItem className="w-full" key={index} value={index.toString()}>
+                                                            <AccordionHeader>
+                                                                {paraclinic.title}
+                                                            </AccordionHeader>
+                                                            <AccordionPanel>
+                                                                <div className=''>
+                                                                    <h4 className='font-semibold font-roboto'>Subido por:</h4>
+                                                                    <p>{paraclinic.uploaded_by.name}</p>
+                                                                    <h4 className='font-semibold font-roboto'>Fecha de subida:</h4>
+                                                                    <p>{paraclinic.date_uploaded.split('T')[0]}</p>
+                                                                </div>
+                                                                <DialogViewParaclinics paraclinic={paraclinic} />
+                                                            </AccordionPanel>
+                                                        </AccordionItem>
+
+                                                    ))}
+                                                </Accordion>
+
+                                            ) : (
+                                                <div className='text-lg font-roboto'>No se encontraron paraclinicos</div>
+                                            )
+                                            }
+                                            <div className='my-5'>
+                                                <h2 className='text-base font-roboto'>Subir un paraclinico</h2>
+                                                <div className='flex flex-col my-2 space-y-4'>
+                                                    <input
+                                                        type="file"
+                                                        onChange={handleFileUpload}
+                                                        className="w-full h-full"
+                                                    />
+                                                    <DialogUploadParaclinic content={paraclinicToSend} showToast={showToast} selectedPatientId={selectedPatient.id} fetchSelectedPatientDetails={fetchSelectedPatientDetails} />
+                                                </div>
+                                            </div>
+
                                         </div>
                                     </AccordionDetailSection>
 
                                 </Accordion>
-                                <Dialog open={annotationsDialog} onOpenChange={() => closeDialog()}>
-                                    <DialogSurface style={{ width: '50%' }}>
-                                        <DialogBody>
-                                            <DialogTitle>
-                                                <div className="font-roboto font-semibold text-lg">
-                                                    Agregar anotación
-                                                </div>
-                                            </DialogTitle>
-                                            <DialogContent>
-                                                <div className="w-full mt-4">
-                                                    <Textarea placeholder="Escribe tu anotación aquí..." className="w-full h-32 border rounded-md p-2" onChange={(e) => setNewAnnotation(e.target.value)} value={newAnnotation} />
-                                                </div>
-                                            </DialogContent>
-                                            <DialogActions>
-                                                <Button disabled={newAnnotation === ''} appearance="primary" onClick={() => sendData()}>
-                                                    Enviar
-                                                </Button>
-                                                <Button appearance="secondary" onClick={() => closeDialog()}>
-                                                    Cerrar
-                                                </Button>
-                                            </DialogActions>
-                                        </DialogBody>
-                                    </DialogSurface>
-                                </Dialog>
                             </div>
                         </DialogContent>
                         <DialogActions>
-                            <Button appearance="secondary" onClick={() => setOpen(false)}>Cerrar</Button>
+                            <Button appearance="secondary" onClick={closeMainDialog}>Cerrar</Button>
                         </DialogActions>
                     </DialogBody>
                 ) : (
                     <DialogBody>
+                        <DialogTitle>
+                            Cargando...
+                        </DialogTitle>
                         <DialogContent>
                             <Spinner size='extra-large' className='my-12' />
                         </DialogContent>
                         <DialogActions>
-                            <Button appearance="secondary" onClick={() => setOpen(false)}>Cerrar</Button>
+                            <Button appearance="secondary" onClick={closeMainDialog}>Cerrar</Button>
                         </DialogActions>
                     </DialogBody>
                 )}

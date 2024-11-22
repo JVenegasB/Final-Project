@@ -12,10 +12,10 @@ interface InputFieldToCompleteProps {
 export default function InputFieldToComplete({ input, isComplete, type, label, handleDataChange,id }: InputFieldToCompleteProps) {
     return (
         <div>
-            {isComplete ? (
+            {(isComplete) ? (
                 <div className='flex flex-col '>
                     <Label className="mb-2 mr-2 font-semibold">{label}:</Label>
-                    <p >{input ?? ''}</p>
+                    <p >{input ?? 'A'}</p>
                 </div>
             ) : (
                 <div className='flex flex-col '>

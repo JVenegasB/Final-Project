@@ -1,13 +1,26 @@
 import { useState, useEffect } from 'react'
 import { client } from '../supabase/client'
-import { Button, Input, Label, Divider } from '@fluentui/react-components'
+import { Button, Input, Label, Divider, useId, useToastController, Toast, ToastTitle, ToastBody, Toaster, ToastIntent } from '@fluentui/react-components'
 import { EyeOffRegular, EyeRegular } from '@fluentui/react-icons';
-import { useUserContext }   from '../context/userContext.ts';
+import { useUserContext } from '../context/userContext.ts';
 
 
 export default function UserDataChangeComponent() {
-    const [user,setUser] = useUserContext();
-    
+    //Toaster
+    const toasterId = useId("toaster");
+    const { dispatchToast } = useToastController(toasterId);
+    const showToast = (title: string, description: string, intent: ToastIntent) => {
+        dispatchToast(
+            <Toast>
+                <ToastTitle >{title}</ToastTitle>
+                <ToastBody>{description}</ToastBody>
+
+            </Toast>,
+            { position: "top-end", intent }
+        )
+    }
+    const [user, setUser] = useUserContext();
+
     const [dataToChange, setDataToChange] = useState({
         newEmail: '',
         userName: '',
@@ -18,8 +31,8 @@ export default function UserDataChangeComponent() {
         const { data, error } = await client.from('users').select('*').eq('user_id', user?.user_id).single()
         if (error) {
             console.error('Error fetching data: ', error)
+            showToast('Error', 'Error al obtener los datos', 'error')
         } else {
-            console.log('Data fetched: ', data)
             setUser({
                 user_id: data.user_id,
                 email: data.email,
@@ -52,18 +65,19 @@ export default function UserDataChangeComponent() {
     };
 
     const sendUserData = async (filteredData: { [k: string]: string; }) => {
-        const { data, error } = await client
-            .from('users')
-            .update(filteredData)
-            .eq('user_id', user?.user_id);
+        const { error } = await client.from('users').update(filteredData).eq('user_id', user?.user_id);
         if (error) {
             console.error('Error updating data: ', error)
+            showToast('Error', 'Error al actualizar los datos', 'error')
         } else {
-            console.log('Data updated: ', data)
+            showToast('Exito', 'Datos actualizados correctamente', 'success')
             fetchUserData()
         }
+        setIsSendingData(false)
     }
+    const [isSendingData, setIsSendingData] = useState(false)
     const handleDataSubmit = async () => {
+        setIsSendingData(true)
         const filteredData = Object.fromEntries(
             Object.entries({
                 email: dataToChange.newEmail,
@@ -71,18 +85,17 @@ export default function UserDataChangeComponent() {
                 phone: dataToChange.phoneNumber,
             }).filter(([value]) => value !== '')
         );
-        console.log('Filtered data: ', filteredData)
-
         if (filteredData.email === '') {
             sendUserData(filteredData)
         } else {
-            const { data, error } = await client.auth.updateUser({
+            const { error } = await client.auth.updateUser({
                 email: filteredData.email
             })
             if (error) {
                 console.error('Error updating email: ', error)
+                showToast('Error', 'Error al actualizar el correo', 'error')
+                setIsSendingData(false)
             } else {
-                console.log('Email updated: ', data)
                 sendUserData(filteredData)
             }
         }
@@ -138,21 +151,25 @@ export default function UserDataChangeComponent() {
             setPasswordCorrect(false)
         }
     }, [password, repeatPassword])
-
-    const sendPassword = async () => {
-        console.log('Sending password', password)
-        const { data, error } = await client.auth.updateUser({
+    const [isSendingPassword, setIsSendingPassword] = useState(false)
+    const sendPassword = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setIsSendingPassword(true)
+        const { error } = await client.auth.updateUser({
             password: password
-          })
+        })
         if (error) {
             console.error('Error updating password: ', error)
-        }else{
-            console.log('Password updated: ', data)
+            showToast('Error', `Error al actualizar la contraseña: ${error}`, 'error')
+        } else {
+            showToast('Exito', 'Contraseña actualizada correctamente', 'success')
         }
-
+        setIsSendingPassword(false)
     }
+
     return (
         <div className="grid grid-cols-[auto,1fr] gap-y-2 items-center overflow-y-auto max-h-[calc(100vh-650px)]">
+            <Toaster toasterId={toasterId} />
             <Label>Correo</Label>
             <div>
                 <Input className="w-full" id='newEmail' name='newEmail' placeholder='Ingrese el nuevo correo' value={dataToChange.newEmail} onChange={handleUserDataChange} />
@@ -164,7 +181,7 @@ export default function UserDataChangeComponent() {
             <Label>Numero de telefono</Label>
             <Input className="w-full" id='phoneNumber' name='phoneNumber' placeholder='Ingrese el numero de telefono' value={dataToChange.phoneNumber} onChange={handleUserDataChange} />
 
-            <Button onClick={handleDataSubmit} disabled={!validEmail}>Enviar</Button>
+            <Button onClick={handleDataSubmit} disabled={!validEmail || isSendingData} >{isSendingData ? "Enviando datos..." : "Enviar"}</Button>
 
             <Divider className='col-span-full my-5'>Cambiar contraseña</Divider>
             <Label>Contraseña</Label>
@@ -173,7 +190,7 @@ export default function UserDataChangeComponent() {
             <Label>Repetir contraseña</Label>
             <Input id="repeatPassword" name="repeatPassword" type={showRepeatPassword ? 'text' : 'password'} contentAfter={<RepeatMicButton />} placeholder="Repita la contraseña" value={repeatPassword} onChange={handlePasswordChange} />
 
-            <Button disabled={!passwordCorrect} onClick={() => sendPassword()}>Cambiar contraseñas</Button>
+            <Button disabled={!passwordCorrect || isSendingPassword} onClick={sendPassword} type='button'>{isSendingPassword ? "Enviando..." : "Cambiar contraseñas"}</Button>
         </div>
 
     )

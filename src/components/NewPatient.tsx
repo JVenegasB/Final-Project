@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Checkbox, Label, Divider, Button, InfoLabel } from "@fluentui/react-components";
+import { Checkbox, Label, Divider, Button, InfoLabel, useToastController, Toast, ToastTitle, ToastBody, ToastIntent, TabValue } from "@fluentui/react-components";
 import { PersonRegular, BriefcaseRegular, PersonChatRegular, SlideRecordRegular, ClockRegular, ClipboardCheckmarkRegular, SaveArrowRight20Regular, Save20Regular } from '@fluentui/react-icons';
 import InputFieldWithIcon from './InputFieldWithIcon'
 import TextFieldWithIcon from './TextFieldWithIcon'
@@ -8,6 +8,8 @@ import InputFieldCie10 from './InputFieldCie10'
 import { PatientSummary } from '../types/types';
 import { useClinicContext } from '../context/clinicContext';
 import { useUserContext } from '../context/userContext';
+import { client } from '../supabase/client';
+
 
 const initialPatientSummary: PatientSummary = {
     id: 0,
@@ -66,8 +68,8 @@ const initialPatientSummary: PatientSummary = {
         skin: '',
         collagen: '',
         lymphatic: '',
-        auditory: '',
-        visual: '',
+        cardiac: '',
+        nervous: '',
         respiratory: '',
         digestive: '',
         genitourinary: '',
@@ -76,14 +78,29 @@ const initialPatientSummary: PatientSummary = {
         sleep: '',
         physical_activity: '',
         psychosocial: '',
+        senses: '',
+        blood: '',
     },
     treatment: [],
 };
-interface NewPatientProps { 
+interface NewPatientProps {
     fetchPatientList: () => void;
+    setTabSelected: (value: TabValue) => void;
 }
 
-export default function NewPatient({fetchPatientList}: NewPatientProps) {
+export default function NewPatient({ fetchPatientList, setTabSelected }: NewPatientProps) {
+    //Toaster
+    const { dispatchToast } = useToastController("global-toaster");
+    const showToast = (title: string, description: string, intent: ToastIntent) => {
+        dispatchToast(
+            <Toast>
+                <ToastTitle >{title}</ToastTitle>
+                <ToastBody>{description}</ToastBody>
+
+            </Toast>,
+            { position: "top-end", intent }
+        )
+    }
     //variable to store the form data
     const [formData, setFormData] = useState<PatientSummary>(initialPatientSummary);
     //Context to get clinic and logged user data
@@ -94,8 +111,7 @@ export default function NewPatient({fetchPatientList}: NewPatientProps) {
         const currentDate = new Date();
         const localISOTime = new Date(
             currentDate.getTime() - currentDate.getTimezoneOffset() * 60000
-        ).toISOString();
-    
+        ).toISOString().slice(0, 16);
         setFormData((prevData) => ({
             ...prevData,
             first_session: localISOTime,
@@ -106,8 +122,8 @@ export default function NewPatient({fetchPatientList}: NewPatientProps) {
             },
         }));
     }, []);
-    
-    
+
+
     //Fill clinic_id and doctor fields
     useEffect(() => {
         if (clinic) {
@@ -129,7 +145,6 @@ export default function NewPatient({fetchPatientList}: NewPatientProps) {
     const [isComplete, setIsComplete] = useState(false);
     const [missingFields, setMissingFields] = useState<string[]>([]);
     useEffect(() => {
-        console.log(formData)
         const enableSendLater = Boolean(
             formData?.name?.trim() &&
             formData?.identification?.trim() &&
@@ -375,55 +390,41 @@ export default function NewPatient({fetchPatientList}: NewPatientProps) {
     const sendLater = async () => {
         const updatedData = { ...formData, is_finish_later: true };
         setFormData(updatedData);
-        const url = 'http://127.0.0.1:54321/functions/v1/create-patient';
-        try {
-            //post
-            const res = await fetch(url,{
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedData),
-            })
-            if(res.ok){
-                console.log('Data saved successfully');
-                //vaciar formulario
-                setFormData(initialPatientSummary);
-                fetchPatientList()
-            }
-        } catch (error) {
-            console.error('Error saving data:', error);
-            
-        }
+        sendDataFunction(updatedData);
     }
     //Send patient history
-    const sendData = async() => {
+    const sendData = async () => {
         const updatedData = { ...formData, is_finish_later: false };
         setFormData(updatedData);
-
-        const url = 'http://127.0.0.1:54321/functions/v1/create-patient';
+        sendDataFunction(updatedData);
+    }
+    const sendDataFunction = async (content: PatientSummary) => {
         try {
             //post
-            const res = await fetch(url,{
+            const { error } = await client.functions.invoke('create-patient', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedData),
+                body: JSON.stringify(content),
             })
-            if(res.ok){
-                console.log('Data saved successfully');
-                //Dialogo de confirmacion de envio
-                setFormData(initialPatientSummary);
-                fetchPatientList()
+            if (error) {
+                console.error('Error saving data:', error);
+                showToast('Error', 'Error al guardar la historia', 'error')
+                return;
             }
+            setFormData(initialPatientSummary);
+            fetchPatientList()
+            showToast('Exito', 'Historia guardada correctamente', 'success')
+            setTabSelected('viewPatients');
         } catch (error) {
             console.error('Error saving data:', error);
-            
+            showToast('Error', 'Error al guardar la historia', 'error')
         }
     }
     return (
         <div className='flex flex-col h-full w-full overflow-y-auto'>
             <div className='flex md:flex-row flex-col justify-between md:mx-5 mx-2'>
                 <div>
-                    <ConfirmationDialogs props={{ buttonDescription: 'Terminar mas tarde', description: '¿Estás seguro de que deseas guardar la historia y continuar más tarde? Esto solo se puede hacer una vez', mainButtonText: 'Enviar para continuar mas tarde', mainFunction: sendLater, secondaryButtonText: 'Cancelar', title: 'Confirmacion para continuar mas tarde', valid: isSendLaterEnable, icon: (<SaveArrowRight20Regular />) }} />
-                    <ConfirmationDialogs props={{ buttonDescription: 'Guardar', description: 'Esta seguro que desea enviar la historia? Una vez enviada no se puede deshacer ni editar', mainButtonText: 'Enviar', mainFunction: sendData, secondaryButtonText: 'Cancelar', title: 'Confirmacion de envio de Evolucion', valid: isComplete, icon: (<Save20Regular />) }} />
+                    <ConfirmationDialogs props={{ buttonDescription: 'Terminar mas tarde', description: '¿Estás seguro de que deseas guardar la historia y continuar más tarde? Esto solo se puede hacer una vez y solo podras modificar los campos que no hayan sido llenados', mainButtonText: 'Enviar para continuar mas tarde', mainFunction: sendLater, secondaryButtonText: 'Cancelar', title: 'Confirmacion para continuar mas tarde', valid: isSendLaterEnable, icon: (<SaveArrowRight20Regular />) }} />
+                    <ConfirmationDialogs props={{ buttonDescription: 'Guardar', description: 'Esta seguro que desea enviar la historia? Una vez enviada no se puede editar ni modificar', mainButtonText: 'Enviar', mainFunction: sendData, secondaryButtonText: 'Cancelar', title: 'Confirmacion de envio de Evolucion', valid: isComplete, icon: (<Save20Regular />) }} />
                     <InfoLabel info=
                         {
                             <>
@@ -492,7 +493,7 @@ export default function NewPatient({fetchPatientList}: NewPatientProps) {
                         )}
                         <Divider className='pt-3' appearance='strong' ><span className='text-xl font-roboto'>Antecedentes familiares</span></Divider>
                         <TextFieldWithIcon id='familyBackground' placeholder='Ingrese los antecedentes familiares...' handleDatachange={(e) => setFormData({ ...formData, family_background: e.target.value })} value={formData?.family_background || ""} />
-                       
+
                         <Divider className='pt-3' appearance='strong' ><span className='text-xl font-roboto'>Revision por sistemas</span></Divider>
                         <div className='col-span-full space-y-1 items-center grid grid-cols-2 w-full gap-x-4'>
                             <InputFieldWithIcon label='Piel y Fanera' id='skin' placeholder='Ingrese revision de piel y fanera' value={formData?.system_review?.skin || ""} handleDatachange={handleSystemReview} />
@@ -501,13 +502,16 @@ export default function NewPatient({fetchPatientList}: NewPatientProps) {
                             <InputFieldWithIcon label='Musculoesqueletico' id='musculoskeletal' placeholder='Ingrese revision del sistema musculoesqueletico' value={formData?.system_review?.musculoskeletal || ""} handleDatachange={handleSystemReview} />
                             <InputFieldWithIcon label='Linfatico' id='lymphatic' placeholder='Ingrese revision del sistema linfatico' value={formData?.system_review?.lymphatic || ""} handleDatachange={handleSystemReview} />
                             <InputFieldWithIcon label='Alimentacion' id='feeding' placeholder='Ingrese revision de alimentacion' value={formData?.system_review?.feeding || ""} handleDatachange={handleSystemReview} />
-                            <InputFieldWithIcon label='Auditivo' id='auditory' placeholder='Ingrese revision del sistema auditivo' value={formData?.system_review?.auditory || ""} handleDatachange={handleSystemReview} />
+                            <InputFieldWithIcon label='Cardiaco' id='cardiac' placeholder='Ingrese revision del sistema cardiaco' value={formData?.system_review?.cardiac || ""} handleDatachange={handleSystemReview} />
                             <InputFieldWithIcon label='Sueño' id='sleep' placeholder='Ingrese revision del sueño' value={formData?.system_review?.sleep || ""} handleDatachange={handleSystemReview} />
-                            <InputFieldWithIcon label='Visual' id='visual' placeholder='Ingrese revision del sitema visual' value={formData?.system_review?.visual || ""} handleDatachange={handleSystemReview} />
+                            <InputFieldWithIcon label='Nervioso' id='nervous' placeholder='Ingrese revision del sitema nervioso' value={formData?.system_review?.nervous || ""} handleDatachange={handleSystemReview} />
                             <InputFieldWithIcon label='Actividad fisica' id='physical_activity' placeholder='Ingrese revision de la actividad fisica' value={formData?.system_review?.physical_activity || ""} handleDatachange={handleSystemReview} />
                             <InputFieldWithIcon label='Respiratorio' id='respiratory' placeholder='Ingrese revision del sistema respiratorio' value={formData?.system_review?.respiratory || ""} handleDatachange={handleSystemReview} />
                             <InputFieldWithIcon label='Psicosocial' id='psychosocial' placeholder='Ingrese revision psicosocial' value={formData?.system_review?.psychosocial || ""} handleDatachange={handleSystemReview} />
                             <InputFieldWithIcon label='Digestivo' id='digestive' placeholder='Ingrese revision del sistema digestivo' value={formData?.system_review?.digestive || ""} handleDatachange={handleSystemReview} />
+                            <InputFieldWithIcon label='Sentidos' id='senses' placeholder='Ingrese revision de sentidos' value={formData?.system_review?.senses || ""} handleDatachange={handleSystemReview} />
+                            <InputFieldWithIcon label='Sangre' id='blood' placeholder='Ingrese revision del sistema sanguineo' value={formData?.system_review?.blood || ""} handleDatachange={handleSystemReview} />
+
                         </div>
                         <Divider className='py-3' appearance='strong' ><span className='text-xl font-roboto'>Familiograma</span></Divider>
                         <TextFieldWithIcon id='familyogram' placeholder='Familiograma' handleDatachange={(e) => setFormData({ ...formData, familiogram: e.target.value })} value={formData?.familiogram || ""} />

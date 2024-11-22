@@ -1,5 +1,6 @@
 import React from 'react';
-import { Input,Button,Menu,MenuTrigger,MenuList,MenuGroupHeader,MenuPopover,MenuItem} from '@fluentui/react-components';
+import { Input, Button, Menu, MenuTrigger, MenuList, MenuGroupHeader, MenuPopover, MenuItem, useToastController, Toast, ToastTitle, ToastBody,  ToastIntent } from '@fluentui/react-components';
+import { client } from '../supabase/client';
 
 interface cie10CodeRequest {
     codigo: string;
@@ -15,24 +16,35 @@ interface InputFieldCie10Props {
     cieValue: string;
 }
 
-export default function InputFieldCie10({id,placeholder,value,handleDatachange,handleCie10Change,cieValue,}: InputFieldCie10Props) {
+export default function InputFieldCie10({ id, placeholder, value, handleDatachange, handleCie10Change, cieValue, }: InputFieldCie10Props) {
+    //Toaster
+    const { dispatchToast } = useToastController("global-toaster");
+    const showToast = (title: string, description: string, intent: ToastIntent) => {
+        dispatchToast(
+            <Toast>
+                <ToastTitle >{title}</ToastTitle>
+                <ToastBody>{description}</ToastBody>
+
+            </Toast>,
+            { position: "top-end", intent }
+        )
+    }
     const [cie10CodeDescriptions, setCie10CodeDescriptions] = React.useState<cie10CodeRequest[]>([]);
 
     const fetchCie10Codes = async (query: string) => {
-        const url = `http://127.0.0.1:54321/functions/v1/getcie10?query=${query}`;
         if (cie10CodeDescriptions.length > 0) return;
-
-        console.log(url);
         try {
-            const res = await fetch(url, {
+            const { data, error } = await client.functions.invoke(`getcie10?query=${query}`, {
                 method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
-            });
-            const data = await res.json();
+            })
+            if (error) {
+                showToast('Error', 'No pudimos obtener las opciones de CIE10', 'error');
+                return;
+            }
             setCie10CodeDescriptions(data);
         } catch (err) {
             console.error('Error fetching CIE10 codes:', err);
-            //Manejar error desde aca -> Algo como 'Error, no pudimos obtener las opciones de CIE10'
+            showToast('Error', 'No pudimos obtener las opciones de CIE10', 'error');
         }
     };
 
@@ -56,7 +68,7 @@ export default function InputFieldCie10({id,placeholder,value,handleDatachange,h
                 <MenuTrigger>
                     <Button
                         disabled={value === ''}
-                        onClick={() => (cie10CodeDescriptions.length < 1 ? fetchCie10Codes(value) : console.log('Already fetched'))}
+                        onClick={() => (cie10CodeDescriptions.length < 1 ? fetchCie10Codes(value) : null)}
                     >
                         CIE10
                     </Button>

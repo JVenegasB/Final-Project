@@ -10,10 +10,11 @@ import UserCompanySetup from './pages/UserCompanySetup.tsx'
 import { FluentProvider, webLightTheme, webDarkTheme } from '@fluentui/react-components'
 import './index.css'
 import { ThemeContext } from './context/themeContext.ts'
-import { client } from './supabase/client.ts'
 import PasswordResetPage from './pages/PasswordResetPage.tsx'
 import { ClinicContext } from './context/clinicContext.ts'
 import { UserContext } from './context/userContext.ts'
+import { loadingHistContext } from './context/loadingIncHistContext.ts'
+import { loadingIncEvHistContext } from './context/loadingIncEvHistContext.ts'
 
 const router = createBrowserRouter([
   {
@@ -47,6 +48,7 @@ interface ClinicType {
   address: string;
   description: string;
   phone: string;
+  logo_url: string;
 }
 type LoggedUserType = {
   user_id: string;
@@ -61,15 +63,9 @@ const Root = () => {
   const [isDarkMode, setIsDarkMode] = useState(window.matchMedia('(prefers-color-scheme: dark)').matches);
   const [clinic, setClinicData] = useState<ClinicType | null>(null);
   const [loggedUser, setLoggedUserData] = useState<LoggedUserType | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean | null>(null);
+  const [isLoadingEv, setIsLoadingHist] = useState<boolean | null>(null);
   useEffect(() => {
-    client.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        console.log('User is logged in');
-      } else {
-        console.log('User is not logged in');
-      }
-    });
-
     const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleColorSchemeChange = (e: MediaQueryListEvent) => {
       setIsDarkMode(e.matches);
@@ -85,11 +81,15 @@ const Root = () => {
   return (
     <ClinicContext.Provider value={[clinic, setClinicData]} >
       <UserContext.Provider value={[loggedUser, setLoggedUserData]}>
-        <ThemeContext.Provider value={{ isDarkMode, setIsDarkMode }}>
-          <FluentProvider theme={isDarkMode ? webDarkTheme : webLightTheme}>
-            <RouterProvider router={router} />
-          </FluentProvider>
-        </ThemeContext.Provider>
+        <loadingHistContext.Provider value={[isLoading, setIsLoading]}>
+          <loadingIncEvHistContext.Provider value={[isLoadingEv, setIsLoadingHist]}>
+            <ThemeContext.Provider value={{ isDarkMode, setIsDarkMode }}>
+              <FluentProvider theme={isDarkMode ? webDarkTheme : webLightTheme}>
+                <RouterProvider router={router} />
+              </FluentProvider>
+            </ThemeContext.Provider>
+          </loadingIncEvHistContext.Provider>
+        </loadingHistContext.Provider>
       </UserContext.Provider>
     </ClinicContext.Provider>
   );

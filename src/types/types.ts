@@ -62,8 +62,8 @@ export interface PatientSummary {
     skin: string;
     collagen: string;
     lymphatic: string;
-    auditory: string;
-    visual: string;
+    cardiac: string;
+    senses: string;
     respiratory: string;
     digestive: string;
     genitourinary: string;
@@ -72,12 +72,28 @@ export interface PatientSummary {
     sleep: string;
     physical_activity: string;
     psychosocial: string;
+    nervous: string;
+    blood: string;
   };
   treatment: {
     id?: number;
     description: string;
   }[];
   evolution?: EvolutionType[];
+  paraclinic?: paraclinicsType[];
+}
+export interface paraclinicsType {
+  content_url:string,
+  date_uploaded:string,
+  description?:string,
+  file_type:string,
+  title:string,
+  uploaded_by:{
+    email:string,
+    id:string,
+    name:string
+  },
+  real_url?: string
 }
 export interface PatientMainData {
   name: string;
@@ -99,6 +115,7 @@ export interface EvolutionType{
   patient_id: number;
   physical_exam: string;
   plan: string;
+  id?: number;
   therapy: string;
   annotations?: {
     id?: number;

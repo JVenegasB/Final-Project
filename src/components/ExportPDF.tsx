@@ -4,6 +4,9 @@ import { PatientSummary } from '../types/types';
 import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer';
 import { Button } from '@fluentui/react-components';
 import { ArrowLeft24Regular } from '@fluentui/react-icons';
+import { useClinicContext } from '../context/clinicContext';
+import { client } from '../supabase/client';
+import { useEffect, useState } from 'react';
 
 type Props = {
     patientData: PatientSummary | null,
@@ -21,6 +24,20 @@ export default function ExportPDF({ patientData, exportType, setAddEvolutionComp
     const returnPage = () => {
         setAddEvolutionComponent("list");
     }
+    const [clinicData] = useClinicContext();
+    const [clinicLogo, setClinicLogo] = useState<string | null>(null);
+    const fetchLogo = async () => {
+        if(!clinicData?.logo_url) return
+        const { data: signedUrlData, error: signedUrlError } = await client.storage.from('Clinic Logos').createSignedUrl(clinicData?.logo_url,60)
+        if(signedUrlError){
+            console.error('Error getting signed url',signedUrlError)
+            return
+        }
+        setClinicLogo(signedUrlData?.signedUrl)
+    }
+    useEffect(() => {
+        if(clinicData?.logo_url !== '' && clinicData?.logo_url) fetchLogo()
+    }, [clinicData])
 
     return (
         <div className='flex flex-col flex-grow h-full w-full px-5'>
@@ -31,12 +48,13 @@ export default function ExportPDF({ patientData, exportType, setAddEvolutionComp
                 >
                     Volver
                 </Button>
-                <PDFDownloadLink
-                    document={patientData ? <PDFSummary patientData={patientData} /> : null}
+                {patientData && <PDFDownloadLink
+                    document={exportType === 'resumen' ? <PDFSummary patientData={patientData} clinicLogo={clinicLogo}/> : <PDFComplete patientData={patientData} clinicLogo={clinicLogo}/>}
                     fileName={`${patientData?.name} Historia clinica ${exportType}.pdf`}
                 >
                     {({ loading }) => <DownloadButton loading={loading} />}
-                </PDFDownloadLink>
+                </PDFDownloadLink> }
+                
             </div>
             <div className='my-5'>
                 <span className="font-roboto text-2xl mt-5">Exportar historia de {patientData?.name} a PDF ({exportType})</span>
@@ -44,11 +62,11 @@ export default function ExportPDF({ patientData, exportType, setAddEvolutionComp
             <div className='flex items-center justify-center w-full'>
                 {exportType === "resumen" ? (
                     <PDFViewer width="90%" className="min-h-[calc(100vh-370px)]">
-                        <PDFSummary patientData={patientData} />
+                        <PDFSummary patientData={patientData} clinicLogo={clinicLogo}/>
                     </PDFViewer>
                 ) : (
                     <PDFViewer width="100%" className="min-h-[calc(100vh-370px)]">
-                        <PDFComplete patientData={patientData} />
+                        <PDFComplete patientData={patientData} clinicLogo={clinicLogo}/>  
                     </PDFViewer>
                 )}
 

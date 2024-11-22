@@ -1,12 +1,12 @@
-import { Table, TableHeader, TableRow, TableHeaderCell, TableBody, TableCell, InfoLabel, Button } from "@fluentui/react-components";
+import { Table, TableHeader, TableRow, TableHeaderCell, TableBody, TableCell } from "@fluentui/react-components";
 import { useThemeContext } from "../context/themeContext";
-import { useState } from "react";
-import InputFieldWithIcon from "../components/InputFieldWithIcon";
-import { client } from "../supabase/client";
+
 import { Session } from "@supabase/supabase-js";
 import { useClinicContext } from '../context/clinicContext.ts';
 import FinishLater from "../components/FinishLater.tsx";
 import { EvolutionToComplete, PatientMainData } from "../types/types.ts";
+import ClinicSendJoinRequest from "../components/ClinicSendJoinRequest.tsx";
+import ClinicCreationComponent from "../components/ClinicCreationComponent.tsx";
 
 interface MainElementPageType {
     isClinicMember: boolean | null;
@@ -18,6 +18,8 @@ interface MainElementPageType {
     isFinishLaterEvolution: EvolutionToComplete[];
     isFinishLaterHistory: PatientMainData[];
     fetchFinishLaterEvolutions: () => void;
+    fetchClinicUserData: (session: Session) => void;
+    fetchUserJoinRequests: (session: Session) => void;
 }
 
 interface JoinRequestType {
@@ -33,36 +35,11 @@ interface clinic {
 }
 
 
-export default function MainElementPage({ isClinicMember, userJoinRequests, userSession, userName, fetchPatientList, isFinishLaterEvolution, isFinishLaterHistory, fetchFinishLaterEvolutions }: MainElementPageType) {
+export default function MainElementPage({ isClinicMember, userJoinRequests, userSession, userName, fetchPatientList, isFinishLaterEvolution, isFinishLaterHistory, fetchFinishLaterEvolutions,fetchClinicUserData,fetchUserJoinRequests }: MainElementPageType) {
     const [clinicName] = useClinicContext();
     const { isDarkMode, } = useThemeContext();
-    const [joinRequestCode, setJoinRequestCode] = useState('')
-
-    const sendJoinRequest = async () => {
-        //validate code exists
-        const { data: clinic, error } = await client.from('clinic').select('*').eq('unique_code', joinRequestCode).single()
-        if (clinic) {
-            console.log('Clinic found')
-            const { data, error } = await client.from('join_requests').insert([
-                {
-                    user_id: userSession?.user.id,
-                    clinic_id: clinic.id,
-                    user_name: userName
-                }
-            ])
-            if (error) {
-                console.log('Error creating join request', error)
-            } else {
-                console.log('Join request created')
-                console.log('Data from request: ', data)
-            }
-        }
-        if (error) {
-            console.error('Error finding clinic', error)
-        }
-    }
     return (
-        <div className={`h-full m-3 ${isDarkMode ? "bg-thirdBgDark" : "bg-white"}`}>
+        <div className={`h-full m-3 ${isDarkMode ? "bg-thirdBgDark" : "bg-customBg"} max-h-[calc(100vh-10px)] overflow-y-auto`}>
             <div className='p-5'>
                 {!isClinicMember ?
                     <>
@@ -91,24 +68,21 @@ export default function MainElementPage({ isClinicMember, userJoinRequests, user
                         </div>
 
                         {!userJoinRequests?.some((request) => request.status === 'accepted' || request.status === 'requested') &&
-                            <div className={`m-3 p-3 ${isDarkMode ? "bg-secondaryBgDark" : "bg-secondaryBgLight"} rounded-md`}>
+                            <>
+                                <div className={`m-3 p-3 ${isDarkMode ? "bg-secondaryBgDark" : "bg-secondaryBgLight"} rounded-md`}>
+                                    <p className="font-roboto text-lg my-2">No tienes solicitudes pentiendes</p>
+                                    <ClinicSendJoinRequest userSession={userSession} userName={userName} fetchUserJoinRequests={fetchUserJoinRequests}/>
+                                </div>
+                                <div className={`m-3 p-3 ${isDarkMode ? "bg-secondaryBgDark" : "bg-secondaryBgLight"} rounded-md`}>
+                                    <p className="font-roboto text-lg my-2">O create un consultorio</p>
+                                    <ClinicCreationComponent userSession={userSession} fetchClinicUserData={fetchClinicUserData}/>
+                                </div>
+                            </>
 
-                                <p>Solicitud rechazada. Ingresa otro codigo para entrar:</p>
-                                <InfoLabel info={
-                                    <>
-                                        <p>Solicite al administrador de la empresa el codigo de identificacion.</p>
-                                        <p>Este se encuentra en la esquina superior derecha de la pantalla de inicio.</p>
-                                    </>
-                                }>
-                                    Ingrese el codigo identificador de la empresa
-                                </InfoLabel>
-                                <InputFieldWithIcon id='companyCode' placeholder='Codigo de empresa' value={joinRequestCode} handleDatachange={(e) => setJoinRequestCode(e.target.value)} />
-                                <Button onClick={sendJoinRequest}>Enviar solicitud</Button>
-                            </div>
                         }
                     </> : <>
-                        <h1 className={`text-4xl font-bold font-roboto ${isDarkMode ? "text-white" : "text-blue-900"}`}>Bienvenido a {clinicName?.name}</h1>
-                        <FinishLater isFinishLaterEvolution={isFinishLaterEvolution} isFinishLaterHistory={isFinishLaterHistory} fetchPatientList={fetchPatientList} fetchFinishLaterEvolutions={fetchFinishLaterEvolutions} />
+                        <h1 className={`text-4xl font-bold font-roboto ${isDarkMode ? "text-white" : "text-blue-900"} my-7`}>Bienvenido a {clinicName?.name}</h1>
+                        <FinishLater isFinishLaterEvolution={isFinishLaterEvolution} isFinishLaterHistory={isFinishLaterHistory} fetchPatientList={fetchPatientList} fetchFinishLaterEvolutions={fetchFinishLaterEvolutions}/>
 
                     </>
                 }

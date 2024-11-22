@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { TableColumnDefinition, Spinner, createTableColumn, useTableFeatures, useTableSort, TableColumnId, Table, TableHeader, TableHeaderCell, TableRow, TableBody, TableCell, Dialog, DialogContent, DialogBody, DialogTitle, DialogSurface, DialogActions, Button, Divider, Checkbox, Label } from "@fluentui/react-components";
+import { TableColumnDefinition, Spinner, createTableColumn, useTableFeatures, useTableSort, TableColumnId, Table, TableHeader, TableHeaderCell, TableRow, TableBody, TableCell, Dialog, DialogContent, DialogBody, DialogTitle, DialogSurface, DialogActions, Button, Divider, Checkbox, Label, useToastController, Toast, ToastTitle, ToastBody, ToastIntent } from "@fluentui/react-components";
 import { PatientMainData, PatientSummary } from '../types/types';
 import InputFieldToComplete from './InputFieldToComplete';
 import InputFieldCie10 from './InputFieldCie10';
 import InputFieldWithIcon from './InputFieldWithIcon';
 import TextFieldToComplete from './TextFieldToComplete';
+import { useLoadingHistContext } from '../context/loadingIncHistContext';
+import { client } from '../supabase/client';
 
 
 const columns: TableColumnDefinition<PatientMainData>[] = [
@@ -32,6 +34,19 @@ interface Props {
 }
 
 export default function FinishLaterHistory({ isFinishLaterHistory, fetchPatientList }: Props) {
+    //Toaster
+    const { dispatchToast } = useToastController("global-toaster");
+    const showToast = (title: string, description: string, intent: ToastIntent) => {
+        dispatchToast(
+            <Toast>
+                <ToastTitle >{title}</ToastTitle>
+                <ToastBody>{description}</ToastBody>
+
+            </Toast>,
+            { position: "top-end", intent }
+        )
+    }
+    const [isLoading,] = useLoadingHistContext()
     const { getRows, sort: { getSortDirection, toggleColumnSort, sort }, } = useTableFeatures(
         {
             columns: columns,
@@ -56,19 +71,16 @@ export default function FinishLaterHistory({ isFinishLaterHistory, fetchPatientL
         setOpen(true)
         fetchSelectedPatientDetails(patient_id);
     };
-    useEffect(() => {
-        console.log(formData)
-    }, [formData])
     const fetchSelectedPatientDetails = async (patient_id: number) => {
-        const url = `http://127.0.0.1:54321/functions/v1/retrieve-patient-complete-history?patient_id=${patient_id}`;
         try {
-            console.log('Fetching selected patient details from service');
-            const res = await fetch(url, {
+            const { data, error } = await client.functions.invoke(`retrieve-patient-complete-history?patient_id=${patient_id}`,{
                 method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-            })
-            const data = await res.json();
-            console.log('Data fetched...', data)
+            });
+            if (error) {
+                console.error('Error fetching selected patient details:', error);
+                showToast('Error', 'No pudimos obtener los detalles del paciente', 'error');
+                return
+            }
             const modifiedData = data.map((prevData: PatientSummary) => ({
                 ...prevData,
                 first_session: prevData.first_session.split('T')[0],
@@ -79,11 +91,11 @@ export default function FinishLaterHistory({ isFinishLaterHistory, fetchPatientL
                         attended_date: evo.attended_date ? evo.attended_date.split('T')[0] : null,
                     }))
                     : null,
-
             }));
             setFormData(modifiedData[0]);
             setFormDataMirror(modifiedData[0]);
         } catch (err) {
+            showToast('Error', 'No pudimos obtener los detalles del paciente', 'error');
             console.error('Error fetching selected patient details:', err);
         }
     }
@@ -134,10 +146,6 @@ export default function FinishLaterHistory({ isFinishLaterHistory, fetchPatientL
             setIsGinecoObstetric(formData?.personal_background.isGinecoObstetric);
         }
     }, [formData])
-
-    useEffect(() => {
-        console.log(isGinecoObstetric)
-    }, [isGinecoObstetric])
 
     const handleSystemReview = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -193,18 +201,18 @@ export default function FinishLaterHistory({ isFinishLaterHistory, fetchPatientL
         setIsGinecoObstetric(false);
         setIsComplete(false);
     }
+    const [isSendingData, setIsSendingData] = useState(false);
     const sendData = async () => {
-        console.log(formData)
-        const url = 'http://127.0.0.1:54321/functions/v1/update_history'
+        setIsSendingData(true);
         try {
-            const res = await fetch(url, {
+            const { error } = await client.functions.invoke('update_history', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
-            })
-            if (!res.ok) {
-                throw new Error('Error sending data')
+            });
+            if (error) {
+                showToast('Error', 'No pudimos enviar los datos', 'error');
             } else {
+                showToast('Exito', 'Historia clinica actualizada', 'success');
                 setOpen(false);
                 setFormData(null);
                 setFormDataMirror(null);
@@ -214,6 +222,9 @@ export default function FinishLaterHistory({ isFinishLaterHistory, fetchPatientL
             }
         } catch (err) {
             console.error('Error sending data:', err)
+            showToast('Error', 'No pudimos enviar los datos', 'error');
+        } finally {
+            setIsSendingData(false);
         }
 
     }
@@ -233,7 +244,7 @@ export default function FinishLaterHistory({ isFinishLaterHistory, fetchPatientL
                     if (parentKey === 'personal_background' && !formData?.personal_background?.isGinecoObstetric) {
                         continue;
                     }
-                    if (key === 'evolution') {
+                    if (key === 'evolution' || key=== 'paraclinic') {
                         continue; // Ignore 'evolution' field
                     }
                     if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
@@ -293,8 +304,7 @@ export default function FinishLaterHistory({ isFinishLaterHistory, fetchPatientL
             const completeness = errors.length === 0;
             return { completeness, errors };
         };
-        const { completeness, errors } = isComplete();
-        console.log(errors)
+        const { completeness } = isComplete();
         setIsComplete(completeness);
     }, [formData])
     return (
@@ -310,8 +320,8 @@ export default function FinishLaterHistory({ isFinishLaterHistory, fetchPatientL
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                {isFinishLaterHistory === null && <TableRow><TableCell colSpan={3}><Spinner size='extra-large' className='my-12' /></TableCell></TableRow>}
-                {isFinishLaterHistory.length === 0 && <TableRow><TableCell colSpan={3}>No hay historyas pendientes</TableCell></TableRow>}
+                    {isFinishLaterHistory === null && <TableRow><TableCell colSpan={3}><Spinner size='extra-large' className='my-12' /></TableCell></TableRow>}
+                    {isFinishLaterHistory.length === 0 && <TableRow><TableCell colSpan={3}>No hay historyas pendientes</TableCell></TableRow>}
                     {rows.map(({ item }, index) => (
                         <TableRow key={index} onClick={() => openDialog(item.patient_id)}>
                             <TableCell>{item.name}</TableCell>
@@ -327,7 +337,11 @@ export default function FinishLaterHistory({ isFinishLaterHistory, fetchPatientL
                 <DialogSurface style={{ width: '70%', maxWidth: '90%' }}>
                     <DialogBody>
                         <DialogTitle>Completar Historia Clinica</DialogTitle>
-                        {formData ? (
+                        {isLoading ? (
+                            <DialogContent className="space-y-5">
+                                <Spinner size="extra-large" className="my-12" />
+                            </DialogContent>
+                        ) : formData ? (
                             <DialogContent>
                                 <div className='grid lg:grid-cols-2 grid-cols-1 space-x-2 space-y-1'>
                                     <Divider className='col-span-full' appearance='strong' ><span className='text-xl font-roboto'>Datos personales</span></Divider>
@@ -370,7 +384,10 @@ export default function FinishLaterHistory({ isFinishLaterHistory, fetchPatientL
                                                     <InputFieldToComplete input={formData?.personal_background?.menarche} id='menarche' isComplete={formDataMirror?.personal_background?.menarche !== '' && formDataMirror?.personal_background?.menarche !== null} type='text' label='Menarquia' handleDataChange={handlePersonalBackground} />
                                                     <InputFieldToComplete input={formData?.personal_background?.planification} id='planification' isComplete={formDataMirror?.personal_background?.planification !== '' && formDataMirror?.personal_background?.planification !== null} type='text' label='Planificacion' handleDataChange={handlePersonalBackground} />
                                                     <InputFieldToComplete input={formData?.personal_background?.pap_smear} id='pap_smear' isComplete={formDataMirror?.personal_background?.pap_smear !== '' && formDataMirror?.personal_background?.pap_smear !== null} type='text' label='Ultimo papanicolau' handleDataChange={handlePersonalBackground} />
-                                                    <TextFieldToComplete label='Observaciones' id='observations' placeholder='Ingrese observaciones...' isComplete={formDataMirror?.personal_background?.observations !== '' && formDataMirror?.personal_background?.observations !== null} handleDataChange={(e) => setFormData({ ...formData, personal_background: { ...formData?.personal_background, observations: e.target.value } } as PatientSummary)} input={formData?.personal_background?.observations || ''} />
+                                                    <div className='col-span-full'>
+                                                        <TextFieldToComplete label='Observaciones' id='observations' placeholder='Ingrese observaciones...' isComplete={formDataMirror?.personal_background?.observations !== '' && formDataMirror?.personal_background?.observations !== null} handleDataChange={(e) => setFormData({ ...formData, personal_background: { ...formData?.personal_background, observations: e.target.value } } as PatientSummary)} input={formData?.personal_background?.observations || ''} />
+
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
@@ -391,13 +408,15 @@ export default function FinishLaterHistory({ isFinishLaterHistory, fetchPatientL
                                             <InputFieldToComplete input={formData?.system_review?.musculoskeletal} id="musculoskeletal" isComplete={formDataMirror?.system_review?.musculoskeletal !== ""} type="text" label="Musculoesqueletico" handleDataChange={handleSystemReview} />
                                             <InputFieldToComplete input={formData?.system_review?.lymphatic} id="lymphatic" isComplete={formDataMirror?.system_review?.lymphatic !== ""} type="text" label="Linfatico" handleDataChange={handleSystemReview} />
                                             <InputFieldToComplete input={formData?.system_review?.feeding} id="feeding" isComplete={formDataMirror?.system_review?.feeding !== ""} type="text" label="Alimentacion" handleDataChange={handleSystemReview} />
-                                            <InputFieldToComplete input={formData?.system_review?.auditory} id="auditory" isComplete={formDataMirror?.system_review?.auditory !== ""} type="text" label="Auditivo" handleDataChange={handleSystemReview} />
+                                            <InputFieldToComplete input={formData?.system_review?.cardiac} id="cardiac" isComplete={formDataMirror?.system_review?.cardiac !== ""} type="text" label="Cardiaco" handleDataChange={handleSystemReview} />
                                             <InputFieldToComplete input={formData?.system_review?.sleep} id="sleep" isComplete={formDataMirror?.system_review?.sleep !== ""} type="text" label="Sueño" handleDataChange={handleSystemReview} />
-                                            <InputFieldToComplete input={formData?.system_review?.visual} id="visual" isComplete={formDataMirror?.system_review?.visual !== ""} type="text" label="Visual" handleDataChange={handleSystemReview} />
+                                            <InputFieldToComplete input={formData?.system_review?.nervous} id="nervous" isComplete={formDataMirror?.system_review?.nervous !== "" && formDataMirror?.system_review?.nervous !== null } type="text" label="Nervioso" handleDataChange={handleSystemReview} />
                                             <InputFieldToComplete input={formData?.system_review?.physical_activity} id="physical_activity" isComplete={formDataMirror?.system_review?.physical_activity !== ""} type="text" label="Actividad fisica" handleDataChange={handleSystemReview} />
                                             <InputFieldToComplete input={formData?.system_review?.respiratory} id="respiratory" isComplete={formDataMirror?.system_review?.respiratory !== ""} type="text" label="Respiratorio" handleDataChange={handleSystemReview} />
                                             <InputFieldToComplete input={formData?.system_review?.psychosocial} id="psychosocial" isComplete={formDataMirror?.system_review?.psychosocial !== ""} type="text" label="Psicosocial" handleDataChange={handleSystemReview} />
                                             <InputFieldToComplete input={formData?.system_review?.digestive} id="digestive" isComplete={formDataMirror?.system_review?.digestive !== ""} type="text" label="Digestivo" handleDataChange={handleSystemReview} />
+                                            <InputFieldToComplete input={formData?.system_review?.senses} id="senses" isComplete={formDataMirror?.system_review?.senses !== ""} type="text" label="Sentidos" handleDataChange={handleSystemReview} />
+                                            <InputFieldToComplete input={formData?.system_review?.blood} id="blood" isComplete={formDataMirror?.system_review?.blood !== "" && formDataMirror?.system_review?.blood !== null} type="text" label="Sangre" handleDataChange={handleSystemReview} />
                                         </div>
                                         <Divider className='py-3' appearance='strong'><span className='text-xl font-roboto'>Familiograma</span></Divider>
                                         <InputFieldToComplete input={formData?.familiogram} id='familiogram' isComplete={formDataMirror?.familiogram !== ""} type='text' label='Familiograma' handleDataChange={(e) => setFormData({ ...formData, familiogram: e.target.value } as PatientSummary)} />
@@ -484,10 +503,13 @@ export default function FinishLaterHistory({ isFinishLaterHistory, fetchPatientL
                                     </div>
                                 </div>
                             </DialogContent>
-                        ) : (<DialogContent className='space-y-5'><Spinner size='extra-large' className='my-12'/></DialogContent>)}
+                        ) : (<DialogContent className='space-y-5'><Spinner size='extra-large' className='my-12' /></DialogContent>)
+
+                        }
+
                         <DialogActions>
                             <Button onClick={() => closeDialog()} appearance='secondary'>Cerrar</Button>
-                            <Button appearance='primary' onClick={() => sendData()} disabled={!isComplete}>Enviar</Button>
+                            <Button appearance='primary' onClick={() => sendData()} disabled={!isComplete || isSendingData}>{isSendingData ? "Enviando..." : "Enviar"}</Button>
                         </DialogActions>
                     </DialogBody>
                 </DialogSurface>

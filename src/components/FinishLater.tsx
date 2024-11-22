@@ -13,15 +13,15 @@ export default function FinishLater({ isFinishLaterEvolution, isFinishLaterHisto
     const { isDarkMode } = useThemeContext();
     return (
         <div className='flex flex-col h-full w-full'>
-            <div className="px-2">
-                <div className="max-h-[calc((100vh-250px)/2)] overflow-y-auto">
+            <div className="px-2 grid lg:grid-cols-2">
+                <div className=" h-[calc((100vh-143px)/2)] overflow-y-auto">
                     <div className={`m-3 p-3 ${isDarkMode ? "bg-secondaryBgDark" : "bg-secondaryBgLight"} rounded-md `}>
                         <h3 className="px-2 py-3 font-bold font-roboto text-xl">Historias incompletas</h3>
                         <FinishLaterHistory isFinishLaterHistory={isFinishLaterHistory} fetchPatientList={fetchPatientList}/>
                     </div>
 
                 </div>
-                <div className="max-h-[calc((100vh-250px)/2)] overflow-y-auto">
+                <div className=" h-[calc((100vh-143px)/2)] overflow-y-auto">
                     <div className={`m-3 p-3 ${isDarkMode ? "bg-secondaryBgDark" : "bg-secondaryBgLight"} rounded-md `}>
                         <h3 className="px-2 py-3 font-bold font-roboto text-xl">Evoluciones incompletas</h3>
                         <FinishLaterEvolutionTable isFinishLaterEvolution={isFinishLaterEvolution} fetchFinishLaterEvolutions={fetchFinishLaterEvolutions}/>
