@@ -110,7 +110,6 @@ export default function ClinicCreationComponent({ userSession, fetchClinicUserDa
         } else {
             setDisableSendButton(true);
         }
-        console.log(data)
     }, [data,selectedLogoFile])
     return (
         <div className='grid md:grid-cols-2 grid-cols-1'>
