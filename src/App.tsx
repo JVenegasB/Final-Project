@@ -25,7 +25,7 @@ export default function InfoPage() {
         <main className="container mx-auto px-4 py-8">
           <>
             <section className="mb-12">
-              <h1 className="text-4xl font-roboto font-bold text-gray-800 mb-4">Descripcion de la aplicacion</h1>
+              <h1 className="text-4xl font-roboto font-bold text-gray-800 mb-4">Descripcion de la aplicacion </h1>
               <p className="text-lg text-gray-600 font-lato">
                 La aplicación es una herramienta de software que busca ayudar a consultorios medicos a gestionar procesos. Entre estos procesos se incluyen:
               </p>
