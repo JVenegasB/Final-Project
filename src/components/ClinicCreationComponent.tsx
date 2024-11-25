@@ -1,4 +1,4 @@
-import { Button, useId, useToastController, Toast, ToastTitle, ToastBody, Toaster, ToastIntent } from "@fluentui/react-components";
+import { Button, useId, useToastController, Toast, ToastTitle, ToastBody, Toaster, ToastIntent, Label } from "@fluentui/react-components";
 import { client } from "../supabase/client";
 import InputFieldWithIcon from "./InputFieldWithIcon";
 import TextFieldWithIcon from "./TextFieldWithIcon";
@@ -37,13 +37,13 @@ export default function ClinicCreationComponent({ userSession, fetchClinicUserDa
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
             if (!file.type.startsWith('image/')) {
-                showToast('Error','Solo se aceptan imagenes','warning');
+                showToast('Error', 'Solo se aceptan imagenes', 'warning');
                 return;
             }
 
             const maxSizeInBytes = 2 * 1024 * 1024; // 5 MB
             if (file.size > maxSizeInBytes) {
-                showToast('Error','El archivo no puede superar los 2 mb','warning');
+                showToast('Error', 'El archivo no puede superar los 2 mb', 'warning');
                 return;
             }
             setSelectedLogoFile(file);
@@ -56,16 +56,15 @@ export default function ClinicCreationComponent({ userSession, fetchClinicUserDa
             console.error('Error setting user. Unable to create consultory');
             return
         }
-        if (selectedLogoFile === undefined || selectedLogoFile === null) {
-            console.error('No file selected');
-            showToast('Error', 'No se selecciono ninguna imagen', 'error')
-            return
+        let logoPath = null;
+        if (selectedLogoFile !== undefined && selectedLogoFile !== null) {
+            logoPath = await uploadClinicLogo(selectedLogoFile)
+            if (!logoPath) {
+                showToast('Error', 'error creando consultorio / logo', 'error')
+                return
+            }
         }
-        const logoPath = await uploadClinicLogo(selectedLogoFile)
-        if (!logoPath) {
-            showToast('Error', 'error creando consultorio / logo', 'error')
-            return
-        }
+
         const { error } = await client.rpc("create_consultory", {
             address: data.address,
             consultory_name: data.consultoryName,
@@ -89,7 +88,7 @@ export default function ClinicCreationComponent({ userSession, fetchClinicUserDa
         const filePath = `Clinic Logos/${userSession?.user.id}/${file.name}`;
         const { data, error } = await client.storage.from('Clinic Logos').upload(filePath, file, { upsert: true });
         if (error) {
-            console.error('Error uploading image',error.message)
+            console.error('Error uploading image', error.message)
             showToast('Error', error.message, 'error')
             return null
         }
@@ -105,12 +104,12 @@ export default function ClinicCreationComponent({ userSession, fetchClinicUserDa
     };
     const [disableSendButton, setDisableSendButton] = useState(true);
     useEffect(() => {
-        if (data.consultoryName !== '' && data.phoneNumber !== '' && data.address !== '' && data.description !== '' && selectedLogoFile !== null) {
+        if (data.consultoryName !== '' && data.phoneNumber !== '' && data.address !== '' && data.description !== '') {
             setDisableSendButton(false);
         } else {
             setDisableSendButton(true);
         }
-    }, [data,selectedLogoFile])
+    }, [data, selectedLogoFile])
     return (
         <div className='grid md:grid-cols-2 grid-cols-1'>
             <Toaster toasterId={toasterId} />
@@ -119,8 +118,14 @@ export default function ClinicCreationComponent({ userSession, fetchClinicUserDa
             <div className='flex flex-col mp-2 col-span-full '>
                 <TextFieldWithIcon handleDatachange={handleChange} id='address' placeholder='Ingrese la direccion: ' value={data.address} label='Ingrese la direccion del consultorio:' />
                 <TextFieldWithIcon handleDatachange={handleChange} id='description' placeholder='Ingrese la breve descripcion: ' value={data.description} label='Ingrese una breve descripcion del consultorio:' />
-                <input type='file' className="my-3" id='logo-upload' accept="image/" onChange={handleFileChange} />
+                <div className="flex flex-col mb-5">
+                    <Label>Ingresa el logo de la empresa: </Label>
+                    <input type='file' className="my-3" id='logo-upload' accept="image/" onChange={handleFileChange} />
+                    <p className="text-xs">Nota: Subir logo es opcional, pero es recomendado para una mayor personalizacion del consultorio</p>
+                </div>
+
             </div>
+
             <Button className='col-span-full' onClick={createConsultory} disabled={disableSendButton}>Crear Empresa</Button>
         </div>
     )

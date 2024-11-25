@@ -420,7 +420,7 @@ export default function NewPatient({ fetchPatientList, setTabSelected }: NewPati
         }
     }
     return (
-        <div className='flex flex-col h-full w-full overflow-y-auto'>
+        <div className='flex flex-col h-full w-full'>
             <div className='flex md:flex-row flex-col justify-between md:mx-5 mx-2'>
                 <div>
                     <ConfirmationDialogs props={{ buttonDescription: 'Terminar mas tarde', description: '¿Estás seguro de que deseas guardar la historia y continuar más tarde? Esto solo se puede hacer una vez y solo podras modificar los campos que no hayan sido llenados', mainButtonText: 'Enviar para continuar mas tarde', mainFunction: sendLater, secondaryButtonText: 'Cancelar', title: 'Confirmacion para continuar mas tarde', valid: isSendLaterEnable, icon: (<SaveArrowRight20Regular />) }} />
@@ -440,7 +440,7 @@ export default function NewPatient({ fetchPatientList, setTabSelected }: NewPati
                     <InputFieldWithIcon label='Doctor: ' id='doctor' placeholder='Nombre del doctor' value={formData?.doctor ?? ''} handleDatachange={(e) => setFormData({ ...formData, doctor: e.target.value })} icon={<ClipboardCheckmarkRegular />} />
                 </div>
             </div>
-            <div className='flex justify-center space-y-3 mx-2'>
+            <div className='flex justify-center space-y-3 mx-2 overflow-y-auto'>
                 <div className='grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 grid-cols-1 font-semibold gap-x-4 gap-y-2 mb-6'>
                     <Divider className='col-span-full' appearance='strong' ><span className='text-xl font-roboto'>Datos personales</span></Divider>
                     <InputFieldWithIcon label='Nombre del paciente' id='name' placeholder='Nombre del paciente' value={formData?.name || ''} handleDatachange={handleDataChange} icon={<PersonRegular />} />
@@ -534,7 +534,7 @@ export default function NewPatient({ fetchPatientList, setTabSelected }: NewPati
                                 <Button onClick={removeDiagnosis}>Remover diagnostico</Button>
                                 <div className='col-span-2'>
                                     {formData.diagnosis.map((_x, i) => (
-                                        <div key={i} className='flex flex-col space-y-1'>
+                                        <div key={i} className='flex flex-col my-1'>
                                             <InputFieldCie10
                                                 id={`diagnostic-${i}`}
                                                 placeholder="Ingrese el diagnostico..."
@@ -580,9 +580,9 @@ export default function NewPatient({ fetchPatientList, setTabSelected }: NewPati
                             <Button onClick={addTreatment}>Agregar tratamiento</Button>
                             <Button onClick={removeTreatment}>Remover tratamiento</Button>
 
-                            <div className='col-span-2'>
+                            <div className='col-span-2 my-2'>
                                 {list2.map((_x, i) => (
-                                    <div key={i} className="flex flex-col space-y-1">
+                                    <div key={i} className="flex flex-col my-1">
                                         <InputFieldWithIcon
                                             id="treatment"
                                             placeholder="Ingrese el tratamiento..."

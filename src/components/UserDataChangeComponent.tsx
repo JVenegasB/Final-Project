@@ -170,11 +170,11 @@ export default function UserDataChangeComponent() {
     return (
         <div className="grid grid-cols-[auto,1fr] gap-y-2 items-center overflow-y-auto max-h-[calc(100vh-650px)]">
             <Toaster toasterId={toasterId} />
-            <Label>Correo</Label>
+            {/* <Label>Correo</Label>
             <div>
-                <Input className="w-full" id='newEmail' name='newEmail' placeholder='Ingrese el nuevo correo' value={dataToChange.newEmail} onChange={handleUserDataChange} />
+                <Input className="w-full" id='newEmail' name='newEmail' placeholder='Ingrese el nuevo correo' value={dataToChange.newEmail} onChange={handleUserDataChange}/>
                 {!validEmail && <div className='text-red-500 font-openSans'>Correo electronico invalido</div>}
-            </div>
+            </div> */}
             <Label>Nombre</Label>
             <Input className="w-full" id='userName' name='userName' placeholder='Ingrese el nombre' value={dataToChange.userName} onChange={handleUserDataChange} />
 
