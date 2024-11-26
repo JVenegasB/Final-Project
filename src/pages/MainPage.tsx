@@ -102,7 +102,11 @@ export default function Header() {
                 role: role
             });
             setActiveTab('mainElement');
-            fetchLogoUrl(clinic?.logo_url)
+            if(clinic.logo_url !== null && clinic.logo_url !== '' ) {
+                fetchLogoUrl(clinic?.logo_url)
+            } else{
+                showToast('Error al obtener logo del consultorio', 'No se encontro un logo asociado al consultorio. Te recomentamos cargar uno desde la seccion de configuraciones', 'warning')
+            }
 
         }
     }
@@ -140,18 +144,24 @@ export default function Header() {
     }
     const [userSession, setUserSession] = useState<Session>();
 
-    //==============================Create context here ===============================
-    useEffect(() => {
-        client.auth.onAuthStateChange((_event, session) => {
+    useEffect(() => {    
+        const { data: { subscription } } = client.auth.onAuthStateChange((_event, session) => {
             if (!session) {
                 navigate('/login');
-            } else {
+            } else if (!userSession) {
                 setUserSession(session);
-                fetchClinicUserData(session);
             }
-        })
-    }, []);
-
+        });
+            return () => {
+            subscription.unsubscribe();
+        };
+    }, [userSession, navigate]);
+    
+    useEffect(() => {
+        if (userSession) {
+            fetchClinicUserData(userSession);
+        }
+    },[userSession])
     useEffect(() => {
         if (!isClinicMember) {
             fetchUserJoinRequests();
@@ -256,13 +266,14 @@ export default function Header() {
         }
     }
 
+
     return (
         <div className="flex flex-col max-h-screen">
             <Toaster toasterId="global-toaster" />
             <div className={`${isDarkMode ? "bg-mainBgDark" : "bg-mainBgLight"} lg:flex flex-row justify-between px-5 hidden`}>
                 <div className="flex flex-row justify-center items-center w-44 h-20 m-2">
                     {isClinicMember ?
-                        (clinic_logo !== '' ? (<h1 className='text-3xl font-bold'>
+                        ((clinic_logo !== '' && clinic_logo!==null) ? (<h1 className='text-3xl font-bold'>
                             <img src={clinic_logo} alt="" className="w-36 h-20 object-contain" />
                         </h1>) : (<h1 className='text-3xl font-bold'>
                             Bienvenido

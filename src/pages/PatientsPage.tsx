@@ -140,7 +140,7 @@ export default function PatientsPage({ fetchPatientList, patientData, isFinishLa
                 <TabList selectedValue={tabSelected} onTabSelect={onTabSelect} className="flex flex-col m-3 gap-3 font-lato overflow-x-auto">
                     <Tab value="viewPatients">Ver pacientes</Tab>
                     <Tab value="createPatients">Crear paciente</Tab>
-                    <Tab value="uncompletedHistory">Terminar más tarde ({pendingSum})</Tab>
+                    <Tab value="uncompletedHistory">Pendientes ({pendingSum})</Tab>
                 </TabList>
             </div>
             <div className="flex">
