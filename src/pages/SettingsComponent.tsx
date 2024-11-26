@@ -139,7 +139,7 @@ export default function SettingsComponent({ isClinicMember,fetchLogoUrl }: Setti
               <h2 className='my-3 font-roboto text-2xl'>Solicitud de ingreso</h2>
               <Button onClick={fetchJoinRequests} disabled={fetchingJoinRequests}>{fetchingJoinRequests ? "Recargando" : "Recargar"}</Button>
             </div>
-            <div className="overflow-x-auto max-h-[calc(100vh-650px)]">
+            <div className="overflow-x-auto h-[calc(100vh-650px)]">
               <Table>
                 <TableHeader>
                   <TableRow>
