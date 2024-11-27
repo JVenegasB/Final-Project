@@ -444,8 +444,8 @@ export default function NewPatient({ fetchPatientList, setTabSelected }: NewPati
                 <div className='grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 grid-cols-1 font-semibold gap-x-4 gap-y-2 mb-6'>
                     <Divider className='col-span-full' appearance='strong' ><span className='text-xl font-roboto'>Datos personales</span></Divider>
                     <InputFieldWithIcon label='Nombre del paciente' id='name' placeholder='Nombre del paciente' value={formData?.name || ''} handleDatachange={handleDataChange} icon={<PersonRegular />} />
-                    <InputFieldWithIcon label='Edad' id='age' placeholder='Edad del paciente' type='number' value={formData?.age + '' || ''} handleDatachange={handleDataChange} icon={<ClockRegular />} />
                     <InputFieldWithIcon label='Fecha de nacimiento' id='date_of_birth' type='date' placeholder='Ingrese fecha de nacimiento del paciente' value={formData?.date_of_birth || ''} handleDatachange={handleDataChange} icon={<PersonRegular />} />
+                    <InputFieldWithIcon label='Edad' id='age' placeholder='Edad del paciente' type='number' value={formData?.age + '' || ''} handleDatachange={handleDataChange} icon={<ClockRegular />} />
                     <InputFieldWithIcon label='Ocupacion' id='occupation' placeholder='Ocupacion del paciente' value={formData?.occupation || ''} handleDatachange={handleDataChange} icon={<BriefcaseRegular />} />
                     <InputFieldWithIcon label='Estado civil' id='marital_status' placeholder='Estado civil del paciente' value={formData?.marital_status || ''} handleDatachange={handleDataChange} icon={<PersonChatRegular />} />
                     <InputFieldWithIcon label='Cedula' id='identification' placeholder='Cedula del paciente' value={formData?.identification || ''} handleDatachange={handleDataChange} icon={<SlideRecordRegular />} />

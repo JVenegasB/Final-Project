@@ -329,7 +329,7 @@ export default function Header() {
                         </button>
                         <div>
                             <div className='px-3 py-5 font-roboto lg:hidden flex flex-row justify-between'>
-                                <button onClick={() => signOut()}>Cerrar sesion</button>
+                                <button onClick={() => signOut()} className={`text-white`}>Cerrar sesion</button>
                                 {loggedUser?.role === 'admin' && (
                                     <div className="font-roboto italic text-gray-400">Codigo: {clinic?.unique_code}</div>
                                 )}
