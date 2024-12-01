@@ -1,7 +1,6 @@
 import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import App from './App.tsx'
 import LogInPage from './pages/LogInPage.tsx'
 import NotFoundPage from './pages/NotFoundPage.tsx'
 import SignUpPage from './pages/SignUpPage.tsx'
@@ -19,12 +18,9 @@ import { loadingIncEvHistContext } from './context/loadingIncEvHistContext.ts'
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <App />,
+    element: <LogInPage />,
     errorElement: <NotFoundPage />
-  }, {
-    path: '/login',
-    element: <LogInPage />
-  }, {
+  },{
     path: '/signup',
     element: <SignUpPage />
   }, {

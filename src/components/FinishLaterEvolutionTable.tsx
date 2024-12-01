@@ -166,7 +166,7 @@ export default function FinishLaterEvolutionTable({ isFinishLaterEvolution, fetc
 
     return (
         <div>
-            <Table>
+            <Table id='incompleteEvolutionTable'>
                 <TableHeader>
                     <TableRow>
                         <TableHeaderCell {...headerSortProps("patient_name")}>Id</TableHeaderCell>

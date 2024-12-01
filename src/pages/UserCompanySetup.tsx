@@ -19,7 +19,7 @@ export default function UserCompanySetup() {
         // Validate session
         client.auth.onAuthStateChange((_event, session) => {
             if (!session) {
-                navigate('/login');
+                navigate('/');
             } else {
                 setUserSession(session);
             }

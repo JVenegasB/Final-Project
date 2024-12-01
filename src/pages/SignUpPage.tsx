@@ -44,6 +44,7 @@ export default function SignUpPage() {
     const MicButton: React.FC = () => {
         return (
             <Button
+                id='togglePasswordVisibility'
                 onClick={() => setShowPassword(!showPassword)}
                 icon={showPassword ? <EyeOffRegular /> : <EyeRegular />}
                 appearance='transparent'
@@ -210,12 +211,12 @@ export default function SignUpPage() {
                             </div>
                             <div>
                                 <InputWithLabel placeholder='Ingrese la contraseña' name="password" type={showPassword ? 'text' : 'password'} value={password} required={true} onChange={handleChange} onInvalid={handleInvalidValue} id='password' contentAfter={<MicButton />} autocomplete="new-password" />
-                                {touched.password && errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+                                {touched.password && errors.password && <p className="text-red-500 text-sm" id='errorMessage'>{errors.password}</p>}
                             </div>
 
                             <div>
                                 <InputWithLabel placeholder='Repetir la contraseña' name="repeatPassword" type={showRepeatPassword ? 'text' : 'password'} value={repeatPassWord} required={true} onChange={handleChange} onInvalid={handleInvalidValue} id='repeatPassword' contentAfter={<RepeatMicButton />} autocomplete="new-password" />
-                                {touched.repeatPassword && errors.repeatPassword && <p className="text-red-500 text-sm">{errors.repeatPassword}</p>}
+                                {touched.repeatPassword && errors.repeatPassword && <p className="text-red-500 text-sm" id='repeatErrorMessage'>{errors.repeatPassword}</p>}
                             </div>
                         </div>
                         <div className='flex flex-col justify-center items-end font-lato '>
@@ -224,8 +225,7 @@ export default function SignUpPage() {
                             </Button>
                         </div>
                         <div className='flex justify-between items-center my-0'>
-                            <Link to="/" className='font-medium hover:text-blue-500 ml-1'>Volver</Link>
-                            <p className='mt-3'>¿Ya tienes cuenta? <Link to="/login" className='font-medium hover:text-blue-500 ml-1'>Inicia sesión</Link></p>
+                            <p className='mt-3'>¿Ya tienes cuenta? <Link to="/" className='font-medium hover:text-blue-500 ml-1'>Inicia sesión</Link></p>
                         </div>
                     </form>
                 </div>
