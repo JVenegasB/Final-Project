@@ -590,7 +590,7 @@ test("Should log in and view settings", async ({ page }) => {
   );
 });
 
-test("Should create a patient", async ({ page }) => {
+test("Should create a clinic", async ({ page }) => {
   const uniqueEmail = `testuser_${Date.now()}@example.com`;
   await page.goto('http://localhost:5173/');
 
