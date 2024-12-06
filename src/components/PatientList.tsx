@@ -143,7 +143,7 @@ export default function PatientList({ patientData, setAddEvolutionComponent, fat
                     )}
                 </div>
                 <div className="flex items-center lg:ml-5 font-lato md:my-3">
-                    <Button onClick={fetchPatientList} disabled={isLoading ?? false}>Refresh</Button>
+                    <Button onClick={fetchPatientList} disabled={isLoading ?? false}>Recargar</Button>
                 </div>
             </div>
 

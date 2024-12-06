@@ -70,11 +70,11 @@ export default function MainElementPage({ isClinicMember, userJoinRequests, user
                         {!userJoinRequests?.some((request) => request.status === 'accepted' || request.status === 'requested') &&
                             <>
                                 <div className={`m-3 p-3 ${isDarkMode ? "bg-secondaryBgDark" : "bg-secondaryBgLight"} rounded-md`}>
-                                    <p className="font-roboto text-lg my-2">No tienes solicitudes pentiendes</p>
+                                    <p className="font-roboto text-lg my-2">No tienes solicitudes pendientes</p>
                                     <ClinicSendJoinRequest userSession={userSession} userName={userName} fetchUserJoinRequests={fetchUserJoinRequests}/>
                                 </div>
                                 <div className={`m-3 p-3 ${isDarkMode ? "bg-secondaryBgDark" : "bg-secondaryBgLight"} rounded-md`}>
-                                    <p className="font-roboto text-lg my-2">O create un consultorio</p>
+                                    <p className="font-roboto text-lg my-2">O crea un consultorio</p>
                                     <ClinicCreationComponent userSession={userSession} fetchClinicUserData={fetchClinicUserData}/>
                                 </div>
                             </>
