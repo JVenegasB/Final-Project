@@ -309,7 +309,7 @@ export default function FinishLaterHistory({ isFinishLaterHistory, fetchPatientL
     }, [formData])
     return (
         <div>
-            <Table>
+            <Table id='incompleteHistoryTable'>
                 <TableHeader>
                     <TableRow>
                         <TableHeaderCell {...headerSortProps("name")}>Nombre</TableHeaderCell>

@@ -58,6 +58,7 @@ export default function LogInPage() {
   const MicButton: React.FC = () => {
     return (
       <Button
+        id='togglePasswordVisibility'
         onClick={() => setShowPassword(!showPassword)}
         icon={showPassword ? <EyeOffRegular /> : <EyeRegular />}
         appearance='transparent'
@@ -136,7 +137,6 @@ export default function LogInPage() {
 
             </div>
             <div className='flex justify-between items-center'>
-              <Link to="/" className='font-medium hover:text-blue-500 ml-1'>Volver</Link>
               <p className='mt-3 font-lato'>No tienes cuenta? <Link to="/signup" className='font-medium hover:text-blue-500 ml-1'>Create una</Link></p>
             </div>
           </form>

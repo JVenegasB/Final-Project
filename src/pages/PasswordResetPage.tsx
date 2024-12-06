@@ -42,7 +42,7 @@ export default function PasswordResetPage() {
                         <InputFieldWithIcon id={'passwordRecovery'} placeholder='Ingresa tu correo electronico' handleDatachange={(e) => setEmail(e.target.value)} value={email} icon={<MailRegular />} type='email'/>
                         {(!isEmailValid && email.length > 0) && <div className='text-red-500 font-openSans'>Correo electronico invalido</div>}
                         <div className='flex flex-row mt-3 justify-between'>
-                            <Link to="/login" className='font-medium hover:text-blue-500 ml-1'>Iniciar sesion</Link>
+                            <Link to="/" className='font-medium hover:text-blue-500 ml-1'>Iniciar sesion</Link>
                             <Link to="/signup" className='font-medium hover:text-blue-500 ml-1'>Crear cuenta</Link>
 
                         </div>

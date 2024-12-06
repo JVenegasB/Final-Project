@@ -147,7 +147,7 @@ export default function Header() {
     useEffect(() => {    
         const { data: { subscription } } = client.auth.onAuthStateChange((_event, session) => {
             if (!session) {
-                navigate('/login');
+                navigate('/');
             } else if (!userSession) {
                 setUserSession(session);
             }
@@ -284,12 +284,12 @@ export default function Header() {
                 </div>
                 <div className='flex flex-row items-center m-2'>
                     {loggedUser?.role === 'admin' && (
-                        <div className="font-roboto italic text-gray-400">Codigo: {clinic?.unique_code}</div>
+                        <div className="font-roboto italic text-gray-400" id='clinic-code'>Codigo: {clinic?.unique_code}</div>
                     )}
                     <div className='border-2 mx-2 p-2 font-roboto'>
                         <Menu>
                             <MenuTrigger disableButtonEnhancement>
-                                <Button appearance='transparent'>
+                                <Button appearance='transparent' id='user-logout-menu'>
                                     <PersonCircle28Regular className='mr-2' />
                                     {loggedUser?.name}
                                 </Button>
@@ -297,7 +297,7 @@ export default function Header() {
                             <MenuPopover>
                                 <MenuList>
                                     <MenuItem>
-                                        <Button onClick={() => signOut()} appearance='transparent'>Cerrar sesion</Button>
+                                        <Button onClick={() => signOut()} appearance='transparent' id='logoutButton'>Cerrar sesion</Button>
                                     </MenuItem>
                                 </MenuList>
                             </MenuPopover>
@@ -329,7 +329,7 @@ export default function Header() {
                         </button>
                         <div>
                             <div className='px-3 py-5 font-roboto lg:hidden flex flex-row justify-between'>
-                                <button onClick={() => signOut()}>Cerrar sesion</button>
+                                <button onClick={() => signOut()} className={`text-white`}>Cerrar sesion</button>
                                 {loggedUser?.role === 'admin' && (
                                     <div className="font-roboto italic text-gray-400">Codigo: {clinic?.unique_code}</div>
                                 )}

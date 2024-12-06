@@ -444,8 +444,8 @@ export default function NewPatient({ fetchPatientList, setTabSelected }: NewPati
                 <div className='grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 grid-cols-1 font-semibold gap-x-4 gap-y-2 mb-6'>
                     <Divider className='col-span-full' appearance='strong' ><span className='text-xl font-roboto'>Datos personales</span></Divider>
                     <InputFieldWithIcon label='Nombre del paciente' id='name' placeholder='Nombre del paciente' value={formData?.name || ''} handleDatachange={handleDataChange} icon={<PersonRegular />} />
-                    <InputFieldWithIcon label='Edad' id='age' placeholder='Edad del paciente' type='number' value={formData?.age + '' || ''} handleDatachange={handleDataChange} icon={<ClockRegular />} />
                     <InputFieldWithIcon label='Fecha de nacimiento' id='date_of_birth' type='date' placeholder='Ingrese fecha de nacimiento del paciente' value={formData?.date_of_birth || ''} handleDatachange={handleDataChange} icon={<PersonRegular />} />
+                    <InputFieldWithIcon label='Edad' id='age' placeholder='Edad del paciente' type='number' value={formData?.age + '' || ''} handleDatachange={handleDataChange} icon={<ClockRegular />} />
                     <InputFieldWithIcon label='Ocupacion' id='occupation' placeholder='Ocupacion del paciente' value={formData?.occupation || ''} handleDatachange={handleDataChange} icon={<BriefcaseRegular />} />
                     <InputFieldWithIcon label='Estado civil' id='marital_status' placeholder='Estado civil del paciente' value={formData?.marital_status || ''} handleDatachange={handleDataChange} icon={<PersonChatRegular />} />
                     <InputFieldWithIcon label='Cedula' id='identification' placeholder='Cedula del paciente' value={formData?.identification || ''} handleDatachange={handleDataChange} icon={<SlideRecordRegular />} />
@@ -520,7 +520,7 @@ export default function NewPatient({ fetchPatientList, setTabSelected }: NewPati
                             <InputFieldWithIcon label='Frecuencia cardiaca (lpm)' type='number' id='heart_rate' placeholder='Frecuencia cardiaca' value={formData?.physical_exam?.heart_rate + "" || ""} handleDatachange={handlePhysicalExam} />
                             <InputFieldWithIcon label='Frecuencia respiratoria (rpm)' type='number' id='respiratory_rate' placeholder='Frecuencia respiratoria' value={formData?.physical_exam?.respiratory_rate + "" || ""} handleDatachange={handlePhysicalExam} />
                             <InputFieldWithIcon label='Tension arterial' id='blood_pressure' placeholder='Tension arterial' value={formData?.physical_exam?.blood_pressure || ""} handleDatachange={handlePhysicalExam} />
-                            <InputFieldWithIcon label='saturation' id='saturation' type='number' placeholder='Saturacion' value={formData?.physical_exam?.saturation + ""} handleDatachange={handlePhysicalExam} />
+                            <InputFieldWithIcon label='Saturation' id='saturation' type='number' placeholder='Saturacion' value={formData?.physical_exam?.saturation + ""} handleDatachange={handlePhysicalExam} />
                             <InputFieldWithIcon label='Temperatura (C)' id='temperature' type='number' placeholder='Temperatura' value={formData?.physical_exam?.temperature + ""} handleDatachange={handlePhysicalExam} />
                             <InputFieldWithIcon label='Peso (kg)' id='weight' type='number' placeholder='Peso' value={formData?.physical_exam?.weight + ""} handleDatachange={handlePhysicalExam} />
                             <InputFieldWithIcon label='Talla (m)' id='size' type='number' placeholder='Talla' value={formData?.physical_exam?.size + ""} handleDatachange={handlePhysicalExam} />
