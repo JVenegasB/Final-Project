@@ -1,8 +1,29 @@
 # Gestión de Historias Clínicas - Aplicación Web
 
-## Descripción
+## Instalacion y uso  
 
-Este proyecto es una **aplicación web de gestión de historias clínicas** diseñada para consultorios médicos pequeños. La aplicación permite a los usuarios gestionar de manera segura la información médica de los pacientes, incluyendo la creación, edición y visualización de historias clínicas y evoluciones. Además, ofrece funcionalidades de autenticación, control de acceso, y gestión de consultorios médicos mediante un sistema flexible y escalable basado en la nube.
+### Dependencias
+
+Para usar el codigo, es necesario tener instalado Node.js (v16 o superior) para usar npm e instalar las depedencias del proyecto.  
+Con el comando npm install se debe tener:  
+- React
+- TypeScript
+- Tailwind CSS
+- React Router
+- Supabase.js
+Para usar Supabase.js, necesitas tener una cuenta y un proyecto configurado en Supabase. Accede a los servicios de Supabase utilizando variables de entorno.
+- SUPABASE_URL: El URL del proyecto SupaBase
+- SUPABASE_ANON_KEY: Clave publica del proyecto Supabase.
+
+
+### Ejecutar el codigo
+
+Al tener todo correctamente instalado, el comando de vite `npm run dev` iniciara el servidor de desarrollo con todas las funcionalidades de vite, mostrando la aplicacion en el navegador.  
+Para 
+
+## Descripción De la aplicacion
+
+Este proyecto es una **aplicación web de gestión de historias clínicas** diseñada para consultorios médicos pequeños. La aplicación permite a los usuarios gestionar de manera segura la información médica de los pacientes, incluyendo la creación, edición y visualización de historias clínicas y evoluciones. Además, ofrece funcionalidades de autenticación, control de acceso y gestión de consultorios médicos mediante un sistema flexible y escalable basado en la nube.
 
 El proyecto está implementado utilizando **React**, **TypeScript**, **Tailwind CSS** para el front-end, y **Supabase** para el back-end, aprovechando sus servicios de autenticación, bases de datos y almacenamiento. El despliegue está gestionado con **Vercel**, lo que garantiza una entrega eficiente y continua.
 
