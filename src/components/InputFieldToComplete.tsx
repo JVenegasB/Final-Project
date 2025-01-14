@@ -9,20 +9,24 @@ interface InputFieldToCompleteProps {
     id?: string;
 }
 
-export default function InputFieldToComplete({ input, isComplete, type, label, handleDataChange,id }: InputFieldToCompleteProps) {
+export default function InputFieldToComplete({ input, isComplete, type, label, handleDataChange, id }: InputFieldToCompleteProps) {
     return (
         <div>
-            {(isComplete) ? (
+            {/* {(isComplete) ? (
                 <div className='flex flex-col '>
                     <Label className="mb-2 mr-2 font-semibold">{label}:</Label>
-                    <p >{input ?? 'A'}</p>
+                    <p >{input ?? ''}</p>
                 </div>
             ) : (
                 <div className='flex flex-col '>
                     <Label className="mb-2 mr-2 font-semibold">{label}</Label>
                     <Input value={input ?? ''} type={type} onChange={handleDataChange} name={id} id={id} className='w-full'/>
                 </div>
-            )}
+            )} */}
+            <div className='flex flex-col '>
+                <Label className="mb-2 mr-2 font-semibold">{label}</Label>
+                <Input value={input ?? ''} type={type} onChange={handleDataChange} name={id} id={id} className='w-full' appearance={`${isComplete ? 'filled-lighter':'outline'}`}/>
+            </div>
         </div>
     );
 }
