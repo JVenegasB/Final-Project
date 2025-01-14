@@ -12,7 +12,7 @@ interface InputFieldToCompleteProps {
 export default function TextFieldToComplete({ input, isComplete, label, handleDataChange, id,placeholder }: InputFieldToCompleteProps) {
     return (
         <div>
-            {isComplete ? (
+            {/* {isComplete ? (
                 <div className='flex lg:flex-row flex-col w-full'>
                     <Label className="mb-2 mr-2 font-semibold">{label}:</Label>
                     <p>{input ?? ''}</p>
@@ -29,7 +29,19 @@ export default function TextFieldToComplete({ input, isComplete, label, handleDa
                         placeholder={placeholder}
                     />
                 </div>
-            )}
+            )} */}
+            <div className='flex flex-col '>
+                    <Label className="mb-2 mr-2 font-semibold">{label}</Label>
+                    <Textarea 
+                        value={input ?? ''} 
+                        onChange={handleDataChange} 
+                        name={id} 
+                        id={id}
+                        className='w-full'
+                        placeholder={placeholder}
+                        appearance={`${isComplete ? 'filled-lighter':'outline'}`}
+                    />
+                </div>
         </div>
     );
 }
