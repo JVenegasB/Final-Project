@@ -86,9 +86,10 @@ const initialPatientSummary: PatientSummary = {
 interface NewPatientProps {
     fetchPatientList: () => void;
     setTabSelected: (value: TabValue) => void;
+    setIsFieldFilled: (value: boolean) => void;
 }
 
-export default function NewPatient({ fetchPatientList, setTabSelected }: NewPatientProps) {
+export default function NewPatient({ fetchPatientList, setTabSelected,setIsFieldFilled }: NewPatientProps) {
     //Toaster
     const { dispatchToast } = useToastController("global-toaster");
     const showToast = (title: string, description: string, intent: ToastIntent) => {
@@ -228,6 +229,7 @@ export default function NewPatient({ fetchPatientList, setTabSelected }: NewPati
 
         setIsComplete(isComplete());
         setIsSendLaterEnable(enableSendLater);
+        setIsFieldFilled(enableSendLater);
     }, [formData]);
 
     //Handle data changes
@@ -414,6 +416,7 @@ export default function NewPatient({ fetchPatientList, setTabSelected }: NewPati
             fetchPatientList()
             showToast('Exito', 'Historia guardada correctamente', 'success')
             setTabSelected('viewPatients');
+            setIsFieldFilled(false);
         } catch (error) {
             console.error('Error saving data:', error);
             showToast('Error', 'Error al guardar la historia', 'error')

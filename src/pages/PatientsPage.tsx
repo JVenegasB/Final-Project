@@ -1,4 +1,4 @@
-import { SelectTabData, SelectTabEvent, Tab, TabList, TabValue, useToastController, Toast, ToastTitle, ToastBody, ToastIntent } from "@fluentui/react-components";
+import { SelectTabData, SelectTabEvent, Tab, TabList, TabValue, useToastController, Toast, ToastTitle, ToastBody, ToastIntent, Dialog, DialogSurface, DialogBody, DialogContent, DialogTitle, DialogActions, Button } from "@fluentui/react-components";
 import { useEffect, useRef, useState } from 'react';
 import PatientList from '../components/PatientList.tsx'
 import { EvolutionToComplete, PatientMainData, PatientSummary } from '../types/types.ts'
@@ -19,7 +19,6 @@ interface PatientsPageProps {
     fetchFinishLaterEvolutions: () => void;
 }
 
-
 export default function PatientsPage({ fetchPatientList, patientData, isFinishLaterEvolution, isFinishLaterHistory, fetchFinishLaterEvolutions }: PatientsPageProps) {
     //Toaster
     const { dispatchToast } = useToastController("global-toaster");
@@ -37,10 +36,17 @@ export default function PatientsPage({ fetchPatientList, patientData, isFinishLa
     const { isDarkMode } = useThemeContext();
     //Change values to change tab
     const [tabSelected, setTabSelected] = useState<TabValue>("viewPatients");
+    const [tabToView, setTabToView] = useState<SelectTabData>();
     const onTabSelect = (_event: SelectTabEvent, data: SelectTabData) => {
-        setTabSelected(data.value)
-        setChangeViewPatientContent("list");
+        if (isFieldFilled) {
+            setOpen(true);
+            setTabToView(data);
+            return;
+        } else {
+            changeTab(data);
+        }
     }
+    const [open, setOpen] = useState<boolean>(false);
     //Variable to store a patients complete history
     const [selectedPatient, setSelectedPatient] = useState<PatientSummary | null>(null);
     //Store in cache queried patients
@@ -131,6 +137,22 @@ export default function PatientsPage({ fetchPatientList, patientData, isFinishLa
     }, [isFinishLaterEvolution, isFinishLaterHistory]);
     //Define the type of export the user selected
     const [exportType, setExportType] = useState<string>("");
+
+    //when createPatients tab is selected and a field id filled, user is prompted a warning if changing tabs
+    const [isFieldFilled, setIsFieldFilled] = useState<boolean>(false);
+
+    const changeTab = (data: SelectTabData) => {
+        setOpen(false);
+        setIsFieldFilled(false);
+        setTabSelected(data.value)
+        setChangeViewPatientContent("list");
+    }
+    const handleDialogConfirm = () => {
+        if (tabToView) {
+            changeTab(tabToView);
+        }
+    };
+
     return (
         <div className={`h-full m-3 ${isDarkMode ? "bg-thirdBgDark" : "bg-white"}`}>
             <div>
@@ -162,7 +184,25 @@ export default function PatientsPage({ fetchPatientList, patientData, isFinishLa
                 )}
                 {tabSelected === "createPatients" && (
                     <div className='max-h-[calc(100vh-250px)] w-full'>
-                        <NewPatient fetchPatientList={fetchPatientList} setTabSelected={setTabSelected} />
+                        <NewPatient fetchPatientList={fetchPatientList} setTabSelected={setTabSelected} setIsFieldFilled={setIsFieldFilled} />
+                        <div>
+                            <Dialog open={open}>
+                                <DialogSurface>
+                                    <DialogBody>
+                                        <DialogTitle>
+                                            <div>Advertencia</div>
+                                        </DialogTitle>
+                                        <DialogContent>
+                                            <div>Si cambias de pestania perderas la informacion ingresada</div>
+                                        </DialogContent>
+                                        <DialogActions>
+                                            <Button appearance="secondary" onClick={() => setOpen(false)}>Volver</Button>
+                                            <Button appearance="primary" onClick={handleDialogConfirm}>Continuar</Button>
+                                        </DialogActions>
+                                    </DialogBody>
+                                </DialogSurface>
+                            </Dialog>
+                        </div>
                     </div>
                 )}
                 {tabSelected === 'uncompletedHistory' && (
@@ -171,7 +211,7 @@ export default function PatientsPage({ fetchPatientList, patientData, isFinishLa
                     </div>
                 )}
             </div>
-            {(openDialog===true) &&
+            {(openDialog === true) &&
                 <PatientHistory open={openDialog} setOpen={setOpenDialog} selectedPatient={selectedPatient} fetchSelectedPatientDetails={fetchSelectedPatientDetails} selectedPatientId={selectedPatientId} />
             }
         </div>
