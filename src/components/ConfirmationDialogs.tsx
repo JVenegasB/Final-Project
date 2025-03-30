@@ -16,7 +16,7 @@ export default function ConfirmationDialogs({ props }: { props: ConfirmationDial
     return (
         <Dialog>
             <DialogTrigger disableButtonEnhancement>
-                <Button disabled={!valid} icon={icon}>{buttonDescription}</Button>
+                <Button disabled={!valid} icon={icon} size="medium" className='min-h-[30px]'>{buttonDescription}</Button>
             </DialogTrigger>
             <DialogSurface>
                 <DialogBody>
