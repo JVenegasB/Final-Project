@@ -150,7 +150,7 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent, fe
     }
     return (
         <div className="flex flex-col flex-grow h-full w-full px-5">
-            <div className="flex overflow-x-auto w-full">
+            <div className="flex min-h-[31px] w-full items-center">
 
 
                 <ConfirmationDialogs props={{ valid: true, buttonDescription: 'Volver', description: 'Esta seguro que desea volver? los cambios no se guardaran a menos que los envie', mainButtonText: 'Volver a la lista de pacientes', secondaryButtonText: "Seguir con la evolucion", title: 'Confirmacion de retorno', mainFunction: returnToMainPage, icon: (<ArrowLeft20Regular />) }} />
@@ -160,6 +160,8 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent, fe
                 <Button
                     onClick={handlePatientDetails}
                     icon={<ContentView20Regular />}
+                    className="min-h-[30px]"
+                    size="medium"
                 >
                     Ver detalles de historia clinica
                 </Button>
@@ -167,6 +169,8 @@ export default function AddEvolution({ patientData, setAddEvolutionComponent, fe
                     onClick={showAlternative}
                     appearance={`${formData.is_alternative ? "primary" : "secondary"}`}
                     icon={<AddCircle20Regular />}
+                    className="min-h-[30px]"
+                    size="medium"
                 >
                     Agregar terapia alternativa
                 </Button>

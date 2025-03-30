@@ -193,7 +193,7 @@ export default function PatientsPage({ fetchPatientList, patientData, isFinishLa
                                             <div>Advertencia</div>
                                         </DialogTitle>
                                         <DialogContent>
-                                            <div>Si cambias de pestania perderas la informacion ingresada</div>
+                                            <div>Si cambias de pestaña perderas la informacion ingresada</div>
                                         </DialogContent>
                                         <DialogActions>
                                             <Button appearance="secondary" onClick={() => setOpen(false)}>Volver</Button>
