@@ -90,10 +90,14 @@ const styles = StyleSheet.create({
         width: 95,
         height: 47,
         marginRight: 10
+    },
+    signature: {
+
     }
 });
 
 export default function PDFSummary({ patientData, clinicLogo }: PDFSummaryProps) {
+    console.log(patientData)
     return (
         <Document>
             <Page style={styles.page}>
@@ -186,10 +190,6 @@ export default function PDFSummary({ patientData, clinicLogo }: PDFSummaryProps)
                                         <Text style={styles.value}>
                                             <Text style={styles.label}>Plan: </Text>{evo.plan}
                                         </Text>
-                                        <Text style={styles.value}>
-                                            <Text style={styles.label}>Enfermedad actual: </Text>{evo.current_illness}
-                                        </Text>
-
                                     </View>
                                 </View>
                             )
