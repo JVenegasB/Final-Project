@@ -382,7 +382,7 @@ export default function PDFComplete({ patientData, clinicLogo }: PDFCompleteProp
                                                 <Text style={styles.label}>Plan: </Text>{evo.plan}
                                             </Text>
                                             <Text style={styles.value}>
-                                                <Text style={styles.label}>Enfermedad actual: </Text>{evo.current_illness}
+                                                <Text style={styles.label}>Enfermedad terapia Alternativa </Text>{evo.therapy}
                                             </Text>
 
                                         </View>
